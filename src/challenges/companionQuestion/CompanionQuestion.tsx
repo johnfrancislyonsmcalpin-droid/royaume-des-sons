@@ -21,15 +21,12 @@
 //   documenter dans ASSUMPTIONS.md par le driver si un champ `questionIndex`
 //   doit être ajouté au contrat à l'intégration.
 // - Consigne vocale : `speak(targetItem.text)` (le texte lui-même) suivi de
-//   `speak(question.promptKey)`, une fois à l'apparition du défi.
-//   `TextQuestion.promptKey` est documenté comme « clé de narration de la
-//   question » (types.ts), pas le texte littéral à énoncer — la résolution
-//   réelle clé -> phrase vit dans `src/narration/**`, que
-//   `ChallengeComponentProps` n'expose pas (même restriction que C1 pour
-//   `src/challenges/shared/**`, contract.ts). Repli documenté, même
-//   convention que `PostSuccessReplay` sans `resolvePronunciation` : la clé
-//   est énoncée littéralement via `speak()`. Limite connue, à corriger
-//   quand l'intégration réelle (E3) résout `promptKey` avant de l'injecter.
+//   `speak(getQuestionPrompt(question.promptKey))`, une fois à l'apparition
+//   du défi. `TextQuestion.promptKey` est une clé résolue en phrase française
+//   via `src/content/questionPrompts.json` (corrigé à l'intégration : la
+//   première version de ce composant énonçait la clé brute, jamais détecté
+//   par les tests unitaires qui fabriquent leurs propres promptKey de test —
+//   voir ASSUMPTIONS.md).
 // - `challenge.options` n'est pas utilisé : les réponses proposées viennent
 //   de `question.answerOptions` (libellés courts ou emoji, déjà fournis par
 //   le contenu), validées contre `question.correctIndex`.
@@ -50,6 +47,7 @@ import { TapTarget } from '../shared/TapTarget'
 import { ChallengeFeedback } from '../shared/feedback'
 import { PostSuccessReplay } from '../shared/postSuccessReplay'
 import { uiText } from '../../content/uiText'
+import { getQuestionPrompt } from '../../content/questionPrompts'
 
 type Outcome = 'idle' | 'correct' | 'incorrect'
 
@@ -79,7 +77,7 @@ export function CompanionQuestion({
     spokenForChallengeRef.current = challenge.id
     void (async () => {
       await speak(targetItem.text)
-      if (question) await speak(question.promptKey)
+      if (question) await speak(getQuestionPrompt(question.promptKey))
     })()
   }, [challenge.id, targetItem.text, question, speak])
 

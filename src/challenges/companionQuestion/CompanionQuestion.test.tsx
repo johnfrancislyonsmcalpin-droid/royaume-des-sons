@@ -21,7 +21,7 @@ function makeTextItem(overrides: Partial<ContentItem> = {}): ContentItem {
     questions: [
       {
         id: 'texte-1-q1',
-        promptKey: 'texte-1-q1-prompt',
+        promptKey: 'l9-text-01-q1-qui-arrive',
         answerOptions: ['🐱', '🐶', '🐦'],
         correctIndex: 0,
       },
@@ -67,11 +67,20 @@ function renderCompanionQuestion(
 }
 
 describe('CompanionQuestion — consigne vocale', () => {
-  it('énonce le texte puis la question (promptKey) à l\'apparition du défi', async () => {
+  it('énonce le texte puis la question RÉSOLUE en phrase française (jamais la clé promptKey brute)', async () => {
     const { speak } = renderCompanionQuestion()
-    await waitFor(() => expect(speak).toHaveBeenCalledWith('texte-1-q1-prompt'))
+    await waitFor(() => expect(speak).toHaveBeenCalledWith('Qui arrive ?'))
     expect(speak).toHaveBeenNthCalledWith(1, 'Le chat dort sur le tapis.\nIl ronronne.')
-    expect(speak).toHaveBeenNthCalledWith(2, 'texte-1-q1-prompt')
+    expect(speak).toHaveBeenNthCalledWith(2, 'Qui arrive ?')
+    expect(speak).not.toHaveBeenCalledWith('l9-text-01-q1-qui-arrive')
+  })
+
+  it("dégrade vers la clé brute pour un promptKey inconnu, sans jamais lever d'exception", async () => {
+    const item = makeTextItem({
+      questions: [{ id: 'q-inconnu', promptKey: 'clef-inexistante', answerOptions: ['🐱'], correctIndex: 0 }],
+    })
+    const { speak } = renderCompanionQuestion({ item })
+    await waitFor(() => expect(speak).toHaveBeenNthCalledWith(2, 'clef-inexistante'))
   })
 })
 
