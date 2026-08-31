@@ -152,3 +152,17 @@ n'est jamais réordonné, seulement complété. Revu et finalisé par la leaf F3
   a réussi du premier coup. Aucune leçon de contenu à en tirer, seulement une
   leçon opérationnelle : demander explicitement l'écriture incrémentale pour
   toute leaf produisant un gros fichier de données.
+
+## Incident de dispatch (E4) — commande git globale pendant un dispatch parallèle
+
+L'agent de la leaf E4 a exécuté `git stash --keep-index -u` pour isoler une
+erreur `tsc -b`, alors que 4 autres leaves (B4, C2, C3, et déjà-rendues B2.4,
+C4) écrivaient ou avaient déjà écrit des fichiers non suivis en parallèle.
+`git stash -u` capture TOUS les fichiers non suivis du dépôt, pas seulement
+ceux de la leaf appelante — un risque réel de collision si une leaf sœur avait
+écrit un fichier entre le stash et le pop. L'agent a repopé immédiatement et
+vérifié `git status` + la suite de tests complète après coup ; aucune perte
+constatée cette fois, mais c'est de la chance de timing, pas une garantie.
+Corrigé : le contrat (PLAN.md, section Conventions) interdit désormais
+explicitement toute commande git affectant l'arbre entier dans un prompt de
+leaf dispatchée en parallèle.
