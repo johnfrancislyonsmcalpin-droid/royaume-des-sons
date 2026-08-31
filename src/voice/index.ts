@@ -46,3 +46,17 @@ export const subscribeMuteState = engine.subscribeMuteState
 
 /** Utilisé par l'UI pour savoir si l'amorçage a déjà eu lieu. */
 export const isPrimed = engine.isPrimed
+
+/** Change le débit de narration (écran parent, SPEC §9). */
+export const setRate = engine.setRate
+
+/** Débit courant. */
+export const getRate = engine.getRate
+
+/** Voix disponibles pour un sélecteur d'écran parent (SPEC §9) ; seul appel
+ * en lecture sur `synth.getVoices()` en dehors de la sélection automatique. */
+export const listVoices = engine.listVoices
+
+/** Force une voix précise (écran parent) ; `null` réactive la sélection
+ * automatique fr-CA>fr-FR>fr-*. */
+export const setVoiceOverride = engine.setVoiceOverride

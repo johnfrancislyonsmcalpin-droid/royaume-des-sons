@@ -41,29 +41,44 @@ export interface VoiceEngine {
   /** A-t-on déjà amorcé la voix ? Exposé pour les tests et pour l'UI (icône
    * "toucher pour activer le son" tant que non amorcé). */
   isPrimed: () => boolean
+  /** Change le débit de narration pour tous les prochains speak() (écran
+   * parent, SPEC §9 "réglage de la vitesse de la voix"). Ignore une valeur
+   * non finie ou ≤ 0 plutôt que de lever une exception. */
+  setRate: (rate: number) => void
+  getRate: () => number
+  /** Voix disponibles pour un sélecteur d'écran parent (SPEC §9). Seul appel
+   * en lecture sur `synth.getVoices()` en dehors de la sélection automatique
+   * fr-CA>fr-FR>fr-* ; ne construit jamais d'utterance. */
+  listVoices: () => SpeechSynthesisVoiceLike[]
+  /** Force une voix précise (écran parent), remplace la sélection
+   * automatique jusqu'au prochain appel. `null` réactive la sélection
+   * automatique fr-CA>fr-FR>fr-*. */
+  setVoiceOverride: (voice: SpeechSynthesisVoiceLike | null) => void
 }
 
 export function createVoiceEngine(deps: VoiceEngineDeps): VoiceEngine {
-  const rate = deps.rate ?? DEFAULT_RATE
+  let rate = deps.rate ?? DEFAULT_RATE
   const lang = deps.lang ?? DEFAULT_LANG
   const muteStore = createMuteStore()
 
   let primed = false
   let selectedVoice: SpeechSynthesisVoiceLike | null = null
+  let voiceOverridden = false
   let voiceReadyPromise: Promise<SpeechSynthesisVoiceLike | null> | null = null
 
   const ensureVoiceSelection = (): Promise<SpeechSynthesisVoiceLike | null> => {
+    if (voiceOverridden) return Promise.resolve(selectedVoice)
     if (!voiceReadyPromise) {
       voiceReadyPromise = selectVoice(deps.synth, deps.voiceGuardMs ?? VOICE_LOAD_GUARD_MS).then(
         (voice) => {
-          selectedVoice = voice
-          return voice
+          if (!voiceOverridden) selectedVoice = voice
+          return selectedVoice
         },
         () => {
           // La sélection de voix ne doit jamais faire échouer le moteur :
           // dégrader vers "aucune voix" plutôt que de propager une erreur.
-          selectedVoice = null
-          return null
+          if (!voiceOverridden) selectedVoice = null
+          return selectedVoice
         },
       )
     }
@@ -109,6 +124,15 @@ export function createVoiceEngine(deps: VoiceEngineDeps): VoiceEngine {
     getMuteState: muteStore.get,
     subscribeMuteState: muteStore.subscribe,
     isPrimed: () => primed,
+    setRate(nextRate: number) {
+      if (Number.isFinite(nextRate) && nextRate > 0) rate = nextRate
+    },
+    getRate: () => rate,
+    listVoices: () => deps.synth.getVoices(),
+    setVoiceOverride(voice: SpeechSynthesisVoiceLike | null) {
+      voiceOverridden = voice !== null
+      selectedVoice = voice
+    },
   }
 }
 
@@ -122,6 +146,7 @@ export function createNoopVoiceEngine(): VoiceEngine {
   const muteStore = createMuteStore()
   muteStore.set(true)
   let primed = false
+  let rate = DEFAULT_RATE
   return {
     primeVoice() {
       primed = true
@@ -135,5 +160,13 @@ export function createNoopVoiceEngine(): VoiceEngine {
     getMuteState: muteStore.get,
     subscribeMuteState: muteStore.subscribe,
     isPrimed: () => primed,
+    setRate(nextRate: number) {
+      if (Number.isFinite(nextRate) && nextRate > 0) rate = nextRate
+    },
+    getRate: () => rate,
+    listVoices: () => [],
+    setVoiceOverride() {
+      // no-op : aucune capacité de synthèse vocale disponible.
+    },
   }
 }

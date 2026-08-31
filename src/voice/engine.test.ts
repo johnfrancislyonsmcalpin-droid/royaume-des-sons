@@ -110,4 +110,80 @@ describe('createNoopVoiceEngine — dégradation propre sans speechSynthesis', (
     expect(() => engine.cancelAll()).not.toThrow()
     expect(engine.getMuteState()).toBe(true)
   })
+
+  it('setRate/listVoices/setVoiceOverride ne lèvent jamais (écran parent, gate F1)', () => {
+    const engine = createNoopVoiceEngine()
+    expect(() => engine.setRate(1.2)).not.toThrow()
+    expect(engine.listVoices()).toEqual([])
+    expect(() => engine.setVoiceOverride(null)).not.toThrow()
+  })
+})
+
+describe('createVoiceEngine — réglages voix (écran parent, gate F1)', () => {
+  it('setRate change le débit utilisé par les prochains énoncés', () => {
+    const fake = createFakeSpeechSynthesis({ voices: [{ name: 'Chantal', lang: 'fr-CA' }] })
+    const engine = createVoiceEngine({ synth: fake.synth, createUtterance: fake.createUtterance })
+
+    expect(engine.getRate()).toBe(0.85)
+    engine.setRate(1.3)
+    expect(engine.getRate()).toBe(1.3)
+  })
+
+  it('ignore une valeur de débit non finie ou <= 0', () => {
+    const fake = createFakeSpeechSynthesis({ voices: [] })
+    const engine = createVoiceEngine({ synth: fake.synth, createUtterance: fake.createUtterance })
+
+    engine.setRate(0)
+    expect(engine.getRate()).toBe(0.85)
+    engine.setRate(-1)
+    expect(engine.getRate()).toBe(0.85)
+    engine.setRate(Number.NaN)
+    expect(engine.getRate()).toBe(0.85)
+  })
+
+  it('listVoices() reflète synth.getVoices() sans jamais construire une utterance', async () => {
+    vi.useFakeTimers()
+    const fake = createFakeSpeechSynthesis({
+      voices: [
+        { name: 'Chantal', lang: 'fr-CA' },
+        { name: 'Amélie', lang: 'fr-FR' },
+      ],
+      voicesDelayMs: 0,
+    })
+    const engine = createVoiceEngine({ synth: fake.synth, createUtterance: fake.createUtterance })
+
+    await vi.advanceTimersByTimeAsync(0)
+    const voices = engine.listVoices()
+    expect(voices.map((v) => v.name)).toEqual(['Chantal', 'Amélie'])
+  })
+
+  it('setVoiceOverride(voice) impose la voix choisie, ignorant la sélection automatique', async () => {
+    vi.useFakeTimers()
+    const chantal = { name: 'Chantal', lang: 'fr-CA' }
+    const amelie = { name: 'Amélie', lang: 'fr-FR' }
+    const fake = createFakeSpeechSynthesis({ voices: [chantal, amelie], voicesDelayMs: 0 })
+    const engine = createVoiceEngine({ synth: fake.synth, createUtterance: fake.createUtterance })
+
+    engine.setVoiceOverride(amelie)
+    engine.primeVoice()
+    engine.speak(request('Bonjour'))
+    await vi.runAllTimersAsync()
+
+    expect(fake.spokenVoices()[0]?.name).toBe('Amélie')
+  })
+
+  it('setVoiceOverride(null) réactive la sélection automatique fr-CA>fr-FR>fr-*', async () => {
+    vi.useFakeTimers()
+    const chantal = { name: 'Chantal', lang: 'fr-CA' }
+    const fake = createFakeSpeechSynthesis({ voices: [chantal], voicesDelayMs: 0 })
+    const engine = createVoiceEngine({ synth: fake.synth, createUtterance: fake.createUtterance })
+
+    engine.setVoiceOverride({ name: 'Intruse', lang: 'fr-FR' })
+    engine.setVoiceOverride(null)
+    engine.primeVoice()
+    engine.speak(request('Bonjour'))
+    await vi.runAllTimersAsync()
+
+    expect(fake.spokenVoices()[0]?.name).toBe('Chantal')
+  })
 })

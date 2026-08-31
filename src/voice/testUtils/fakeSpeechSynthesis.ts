@@ -43,6 +43,9 @@ export interface FakeSpeechSynthesisControl {
   failNextStarts: (count: number) => void
   /** Textes effectivement envoyés à `speak()`, dans l'ordre. */
   spokenTexts: () => string[]
+  /** Voix effectivement assignées aux utterances envoyées à `speak()`, dans
+   * l'ordre (pour vérifier qu'un `setVoiceOverride` a bien été appliqué). */
+  spokenVoices: () => (SpeechSynthesisVoiceLike | null)[]
   /** Nombre d'utterances actuellement en cours de simulation (0 ou 1). */
   activeCount: () => number
   /** Remplace la liste de voix "installées" et redéclenche `voiceschanged`
@@ -59,6 +62,7 @@ export function createFakeSpeechSynthesis(
   const voiceListeners = new Set<() => void>()
   let failNextStartsCount = 0
   const spoken: string[] = []
+  const spokenVoices: (SpeechSynthesisVoiceLike | null)[] = []
   let activeUtterance: SpeechSynthesisUtteranceLike | null = null
   // Timers de simulation d'énoncé (onstart/onend), distincts des timers de
   // livraison des voix : `cancel()` doit interrompre un énoncé en cours sans
@@ -88,6 +92,7 @@ export function createFakeSpeechSynthesis(
     getVoices: () => currentVoices.slice(),
     speak(utterance: SpeechSynthesisUtteranceLike) {
       spoken.push(utterance.text)
+      spokenVoices.push(utterance.voice)
       activeUtterance = utterance
       const suppressStart = failNextStartsCount > 0
       if (suppressStart) failNextStartsCount -= 1
@@ -131,6 +136,7 @@ export function createFakeSpeechSynthesis(
       failNextStartsCount = count
     },
     spokenTexts: () => spoken.slice(),
+    spokenVoices: () => spokenVoices.slice(),
     activeCount: () => (activeUtterance ? 1 : 0),
     setVoicesNow(list: FakeVoice[]) {
       currentVoices = list
