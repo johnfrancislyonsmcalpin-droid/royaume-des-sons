@@ -1,0 +1,23 @@
+/* Léger pouls d'invitation sur le bouton "Jouer" : coût nul, purement
+   décoratif, jamais le seul signal (SPEC §3 — couleur/mouvement ne sont
+   jamais l'unique vecteur d'information). Désactivé sous
+   prefers-reduced-motion, comme toute animation CSS de src/app (leaf-A1 G4). */
+.play-button {
+  animation: play-button-invite 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .play-button {
+    animation: none;
+  }
+}
+
+@keyframes play-button-invite {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}

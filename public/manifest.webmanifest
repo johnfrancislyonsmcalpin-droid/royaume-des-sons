@@ -1,0 +1,20 @@
+{
+  "name": "Royaume des Sons",
+  "short_name": "Royaume des Sons",
+  "id": ".",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#ffffff",
+  "theme_color": "#aa3bff",
+  "lang": "fr-CA",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
