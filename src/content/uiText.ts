@@ -38,6 +38,11 @@ interface UiText {
     companionQuestionSuccess: string
     companionQuestionRetry: string
   }
+  screens: {
+    avatarSelectIntro: string
+    playIntro: string
+    questIntro: string
+  }
 }
 
 export const uiText: UiText = rawUiText as UiText

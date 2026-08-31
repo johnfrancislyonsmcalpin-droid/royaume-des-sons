@@ -370,3 +370,87 @@ sans réordonner le reste du fichier.
   instancier un `Challenge` par question plutôt qu'un seul par texte —
   changement de contrat jugé trop risqué à faire tard dans le build sans
   reverifier l'ensemble de la chaîne E3, donc reporté à une itération future.
+
+## Décisions et correctifs (A5 — intégration racine)
+
+`src/App.tsx` était encore le squelette de démarrage Vite jusqu'à cette leaf :
+aucune leaf n'avait explicitement OWNS sur le montage final de l'application.
+Ajoutée au plan en cours de route (contrat C25, révision 2 de l'inventaire).
+
+- **Enchaînement d'écrans retenu** : `voice-check` (une fois, si
+  `shouldShowVoiceCheck()`) → `play` → `avatar-select` (si
+  `avatar.avatarId === ''`) → `world-map` → `quest` → retour à `world-map` à
+  la fin. `grand-livre` est atteignable/quittable depuis `world-map` (bouton
+  ajouté par A5, aucune autre pièce livrée n'exposait de chemin vers cet
+  écran — sans lui c'était une impasse). Reprise : si
+  `currentQuestState !== null` au démarrage, saute directement à `quest`.
+- **`questsPlayed`** (requis par D2/spacing, absent du contrat figé
+  `SaveFile`/`ProgressState`) persisté via une clé localStorage dédiée
+  (`royaume-des-sons:quests-played`), plutôt que d'ajouter un champ au
+  contrat figé.
+- **`AppShell.tsx` (A1) n'est pas utilisé en production**, seulement testé
+  isolément par sa propre leaf : il hardcode sa propre liste d'écrans
+  (uniquement `play`) hors du OWNS d'A5. A5 réutilise directement
+  `ScreenNavigator`/`touchSafeStyle`/`useFullscreenOnFirstGesture` (tous
+  exportés séparément) dans son propre `GameRoot.tsx` avec la liste complète
+  des écrans.
+- **Défauts réels trouvés et corrigés par A5** : le bouton de `PlayScreen.tsx`
+  (A1) n'avait AUCUN gestionnaire de clic câblé (jeu totalement bloqué au
+  tout premier écran) ; une sauvegarde neuve a `unlockedRegionIds: []`
+  (aucune région jouable) — la région 1 est débloquée à la confirmation de
+  l'avatar ; l'écran parent écrivait directement en localStorage sans
+  resynchroniser l'état en mémoire de `GameRoot`.
+- **`vitest.config.ts`/`tsconfig.app.json` étendus à `tests/**`** (en plus de
+  `src/**`) : nécessaire pour que les tests d'intégration à la racine du
+  dépôt (hors `src/`) puissent s'exécuter ; configs partagées, changement
+  additif, aucune autre leaf ne les possédait.
+- **5 phrases de narration d'écran codées en dur** dans
+  `src/app/root/screens/*.tsx` (intro de chaque écran) : détecté par GB6
+  après le retour d'A5, corrigé par le driver. 2 réutilisent des clés
+  `uiText.json` déjà existantes (`map.overview` pour la carte,
+  `grandLivre.intro` pour le Grand Livre — A5 avait écrit des variantes très
+  proches, remplacées pour éviter la duplication) ; 3 nouvelles clés ajoutées
+  sous `uiText.screens` (`avatarSelectIntro`, `playIntro`, `questIntro`).
+
+### Correctif du driver après la revue d'A5 : relecture post-succès jamais visible (SPEC §6)
+
+A5 a signalé, sans le corriger (hors de son OWNS), un défaut réel dans
+`src/world/quest/useQuestSession.ts` (E3) : sur une réponse correcte,
+`currentIndex` avançait de façon SYNCHRONE dans la même mise à jour d'état que
+la réponse elle-même. Comme `QuestRunner` (E3) re-rend alors immédiatement
+avec un `challenge.id` différent, l'effet de chaque mécanique qui réinitialise
+son état local au changement de `challenge.id` (`useEffect([challenge.id])`,
+présent dans les 6 composants C1-C4) écrasait l'état "correct" **avant** que
+`ChallengeFeedback` et la relecture syllabe par syllabe (`PostSuccessReplay`,
+« ne doit jamais être sautée ») n'aient la moindre fenêtre pour s'afficher —
+en pratique, une fenêtre visible d'environ 0ms.
+
+Corrigé par le driver dans `useQuestSession.ts` (E3, pas le contrat figé
+`ChallengeComponentProps`) : sur une réponse correcte, le résultat et une
+éventuelle remise en file sont persistés immédiatement (SPEC §3, écriture
+après chaque défi), mais `currentIndex` n'avance qu'après un délai DIFFÉRÉ,
+estimé à partir du nombre de graphèmes de l'item cible
+(`estimateSuccessReplayDelayMs` : 1200ms + 700ms par graphème, plafonné à
+8000ms) — heuristique documentée, pas une garantie exacte tant que `speak()`
+ne résout pas à la fin réelle de l'énoncé (voir limite suivante). Pendant ce
+délai, `currentChallenge` ne change pas : le composant de défi reste monté
+avec le même `challenge.id`, donc son état local "correct" et sa relecture
+s'exécutent normalement. Test de régression réécrit dans
+`QuestRunner.test.tsx` prouvant explicitement le nouveau comportement en
+deux temps (résultat persisté avant avancement, avancement après le délai).
+
+**Limite connue, non résolue** : `speak()` (A2, exposé via
+`ChallengeComponentProps.speak`) est fire-and-forget côté appelant — le
+wrapper d'A5 (`challengeSpeak.ts`, `Promise.resolve(...)`) résout
+immédiatement, pas à la fin réelle de l'énoncé. `PostSuccessReplay` (C1)
+attend donc chaque `speak()` sans que cette attente corresponde à la durée
+réelle de la parole : le surlignage visuel avance plus vite que le son.
+L'audio lui-même reste correctement séquencé (la file interne d'A2 sérialise
+un énoncé à la fois), donc l'enfant entend chaque son dans le bon ordre, mais
+le surlignage synchronisé syllabe par syllabe n'est qu'approximatif. Corriger
+complètement demanderait d'exposer une nouvelle capacité "parler et attendre
+la fin réelle" côté `src/voice/**` (A2, VERIFIED) — changement plus profond,
+jugé plus risqué à faire tard dans le build sans reverifier toute la chaîne
+vocale, donc reporté. Le délai différé ci-dessus reste correct et suffisant
+pour que la relecture soit VISIBLE, même si son rythme interne n'est
+qu'approximatif.

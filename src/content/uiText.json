@@ -36,5 +36,10 @@
     "trueFalseRetry": "On décode encore !",
     "companionQuestionSuccess": "Bravo, tu as bien écouté !",
     "companionQuestionRetry": "On réécoute l'histoire !"
+  },
+  "screens": {
+    "avatarSelectIntro": "Choisis ton héros, puis ton compagnon magique, et touche la coche pour confirmer.",
+    "playIntro": "Touche le gros bouton pour commencer à jouer.",
+    "questIntro": "Un nouveau défi t'attend. Écoute bien la consigne."
   }
 }
