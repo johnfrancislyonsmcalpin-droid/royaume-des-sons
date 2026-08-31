@@ -1,0 +1,145 @@
+[
+  {
+    "id": "text-l9-01",
+    "kind": "text",
+    "level": 9,
+    "text": "Le chat dort dans la cabane.\nLe chien arrive.\nLe chien saute avec le chat.\nLe chat rit.",
+    "graphemeIds": ["ch", "a", "t", "d", "o", "r", "c-dur", "b", "n", "e-muet", "i", "en", "v", "s", "au"],
+    "skillIds": ["L9-comprehension"],
+    "questions": [
+      { "id": "text-l9-01-q1", "promptKey": "l9-text-01-q1-qui-arrive", "answerOptions": ["🐕", "🐈", "🦁"], "correctIndex": 0 }
+    ]
+  },
+  {
+    "id": "text-l9-02",
+    "kind": "text",
+    "level": 9,
+    "text": "Le robot a un chapeau.\nLe robot danse.\nLe robot chante avec maman.\nMaman rit.",
+    "graphemeIds": ["r", "o", "b", "t", "ch", "a", "p", "eau", "d", "an", "s", "e-muet", "i", "m"],
+    "skillIds": ["L9-comprehension"],
+    "questions": [
+      { "id": "text-l9-02-q1", "promptKey": "l9-text-02-q1-qui-danse", "answerOptions": ["🤖", "🐈", "👩"], "correctIndex": 0 }
+    ]
+  },
+  {
+    "id": "text-l9-03",
+    "kind": "text",
+    "level": 9,
+    "text": "Le chat glisse sur le sofa.\nLe chat rit.\nBravo le chat !",
+    "graphemeIds": ["ch", "a", "t", "g-dur", "l", "i", "s", "e-muet", "o", "f", "r", "v", "b"],
+    "skillIds": ["L9-comprehension", "L9-ponctuation"],
+    "questions": [
+      { "id": "text-l9-03-q1", "promptKey": "l9-text-03-q1-ou-glisse", "answerOptions": ["🛋️", "🎒", "🏡"], "correctIndex": 0 }
+    ]
+  },
+  {
+    "id": "text-l9-04",
+    "kind": "text",
+    "level": 9,
+    "text": "Le chien arrive.\n— Je danse ! dit le chien.\nLe chat rit avec le chien.",
+    "graphemeIds": ["ch", "i", "en", "a", "r", "v", "e-muet", "d", "an", "s", "t"],
+    "skillIds": ["L9-comprehension", "L9-ponctuation"],
+    "questions": [
+      { "id": "text-l9-04-q1", "promptKey": "l9-text-04-q1-qui-danse", "answerOptions": ["🐕", "🐈", "🦁"], "correctIndex": 0 }
+    ]
+  },
+  {
+    "id": "text-l9-05",
+    "kind": "text",
+    "level": 9,
+    "text": "Le chat a un chapeau.\nQui a un chapeau ?\nLe chat a un chapeau !",
+    "graphemeIds": ["ch", "a", "t", "p", "eau"],
+    "skillIds": ["L9-comprehension", "L9-ponctuation"],
+    "questions": [
+      { "id": "text-l9-05-q1", "promptKey": "l9-text-05-q1-qui-a-chapeau", "answerOptions": ["🐈", "🐕", "🦁"], "correctIndex": 0 }
+    ]
+  },
+  {
+    "id": "text-l9-06",
+    "kind": "text",
+    "level": 9,
+    "text": "Le lion est fort.\nLe lion arrive dans le parc.\nLe chien a peur.\nLe lion rit avec le chien.",
+    "graphemeIds": ["l", "i", "on", "f", "o", "r", "t", "a", "v", "e-muet", "p", "c-dur", "ch", "en", "eu"],
+    "skillIds": ["L9-comprehension"],
+    "questions": [
+      { "id": "text-l9-06-q1", "promptKey": "l9-text-06-q1-qui-a-peur", "answerOptions": ["🐕", "🦁", "🐈"], "correctIndex": 0 }
+    ]
+  },
+  {
+    "id": "text-l9-07",
+    "kind": "text",
+    "level": 9,
+    "text": "La tortue adore le sac.\nLa tortue porte le sac.\nLa tortue est contente.",
+    "graphemeIds": ["t", "o", "r", "u", "e-muet", "a", "d", "s", "c-dur", "p", "on", "en"],
+    "skillIds": ["L9-comprehension"],
+    "questions": [
+      { "id": "text-l9-07-q1", "promptKey": "l9-text-07-q1-qui-porte-sac", "answerOptions": ["🐢", "🐕", "🐈"], "correctIndex": 0 }
+    ]
+  },
+  {
+    "id": "text-l9-08",
+    "kind": "text",
+    "level": 9,
+    "text": "Le bouton roule sur le sofa.\nLe bouton roule sur le sac.\nLe bouton arrive dans la cabane.",
+    "graphemeIds": ["b", "ou", "t", "on", "r", "l", "e-muet", "s", "o", "f", "a", "c-dur", "i", "v", "n"],
+    "skillIds": ["L9-comprehension"],
+    "questions": [
+      { "id": "text-l9-08-q1", "promptKey": "l9-text-08-q1-ou-arrive-bouton", "answerOptions": ["🏡", "🛋️", "🎒"], "correctIndex": 0 }
+    ]
+  },
+  {
+    "id": "text-l9-09",
+    "kind": "text",
+    "level": 9,
+    "text": "Le chien nage vite.\nLe chat arrive.\nLe chat nage avec le chien.",
+    "graphemeIds": ["ch", "i", "en", "n", "a", "g-doux", "e-muet", "v", "t", "r"],
+    "skillIds": ["L9-comprehension"],
+    "questions": [
+      { "id": "text-l9-09-q1", "promptKey": "l9-text-09-q1-qui-nage-vite", "answerOptions": ["🐕", "🐈", "🐢"], "correctIndex": 0 }
+    ]
+  },
+  {
+    "id": "text-l9-10",
+    "kind": "text",
+    "level": 9,
+    "text": "Le chien garde la cabane.\nLe chat arrive ici.\nLe chat dort ici avec le chien.",
+    "graphemeIds": ["ch", "i", "en", "g-dur", "a", "r", "d", "e-muet", "c-dur", "b", "n", "t", "v", "c-doux", "o"],
+    "skillIds": ["L9-comprehension"],
+    "questions": [
+      { "id": "text-l9-10-q1", "promptKey": "l9-text-10-q1-qui-garde-cabane", "answerOptions": ["🐕", "🐈", "🦁"], "correctIndex": 0 }
+    ]
+  },
+  {
+    "id": "text-l9-11",
+    "kind": "text",
+    "level": 9,
+    "text": "Le chat a un ami.\n— Tu as un ami ? dit maman.\n— Oui ! dit le chat.",
+    "graphemeIds": ["ch", "a", "t", "m", "i", "s", "an", "ou", "d"],
+    "skillIds": ["L9-comprehension", "L9-ponctuation"],
+    "questions": [
+      { "id": "text-l9-11-q1", "promptKey": "l9-text-11-q1-qui-a-ami", "answerOptions": ["🐈", "🐕", "👩"], "correctIndex": 0 }
+    ]
+  },
+  {
+    "id": "text-l9-12",
+    "kind": "text",
+    "level": 9,
+    "text": "Le lion trotte dans le parc.\n— Le lion trotte vite ! dit le chat.\n— Non, dit le lion.\nLe lion trotte encore.",
+    "graphemeIds": ["l", "i", "on", "t", "r", "o", "e-muet", "p", "a", "c-dur", "v", "d", "ch", "n", "en"],
+    "skillIds": ["L9-comprehension", "L9-ponctuation"],
+    "questions": [
+      { "id": "text-l9-12-q1", "promptKey": "l9-text-12-q1-qui-trotte", "answerOptions": ["🦁", "🐕", "🐈"], "correctIndex": 0 }
+    ]
+  },
+  {
+    "id": "text-l9-13",
+    "kind": "text",
+    "level": 9,
+    "text": "Le robot vole dans le parc.\nLe chat arrive vite.\nLe robot danse avec le chat.",
+    "graphemeIds": ["r", "o", "b", "t", "v", "l", "e-muet", "p", "a", "c-dur", "ch", "i", "an", "d", "s"],
+    "skillIds": ["L9-comprehension"],
+    "questions": [
+      { "id": "text-l9-13-q1", "promptKey": "l9-text-13-q1-qui-vole", "answerOptions": ["🤖", "🐈", "🐕"], "correctIndex": 0 }
+    ]
+  }
+]

@@ -81,3 +81,31 @@ n'est jamais réordonné, seulement complété. Revu et finalisé par la leaf F3
 - **Bouton tactile local** (`TapButton.tsx`, même précédent que `E2/TouchButton.tsx`) en attendant `TapTarget` (C1, en cours en parallèle) ; signature de `WorldMap` conçue pour ne pas changer au branchement.
 - **Callback `onAnnounce?: (text) => void`** plutôt qu'un import direct de `src/narration/**`, pour rester découplé pendant le dispatch parallèle.
 - **État "completed" d'une région dérivé de `progress.currentLevel`** (`level < currentLevel`), pas de nouveau champ dans `ProgressState` (contrat figé). Limite connue : en mode aventure libre après le niveau 10, la région 10 reste affichée "current", jamais "completed" — à revoir si le mode aventure libre (SPEC §5 niveau 10) l'exige.
+
+## Décision de modélisation (B2.3 — phrases niveau 8 + mini-textes niveau 9)
+
+- **Mots-outils jamais marqués `isSightWord` sur un item `sentence`/`text`.**
+  `ContentItem.graphemeIds`/`isSightWord` s'appliquent à l'item entier ; pour
+  une phrase, `graphemeIds` = union des décompositions des seuls mots
+  décodables qu'elle contient, les mots-outils (le, la, les, un, une, des,
+  est, et, dans, sur, avec, il, elle, je, tu, a, ont, qui) n'y entrant jamais
+  puisqu'ils sont reconnus globalement, pas décodés.
+- **Une "phrase" d'un mini-texte est une ligne séparée par `\n`**, pas un
+  découpage par ponctuation (une ligne de dialogue avec `!` interne fausserait
+  un comptage par ponctuation).
+- **`graphemesKnownAtLevel(8)` et `(9)` sont strictement égales à `(7)`** :
+  B1 n'introduit aucun nouveau graphème aux niveaux 8-9, tout le vocabulaire
+  décodable des phrases/textes vient des 35 graphèmes des niveaux 1-7.
+
+## Décision de modélisation (B2.2 — mots niveaux 6-7 + pseudo-mots)
+
+- **`e-muet` réutilisé pour tout "e" nu non accentué (final ou médian, schwa)**,
+  faute de graphème dédié dans le curriculum B1 pour le schwa médian. Les
+  graphèmes isolés j, h, x, y, w, z et q ne sont enseignés nulle part dans le
+  curriculum : aucun mot n'en contient. `graphemeIds` reste une décomposition
+  pédagogique explicite (SPEC §5), pas un miroir lettre à lettre de
+  l'orthographe — l'accentuation dans `text` (â, î, ô, ç) est libre tant que
+  `graphemeIds` ne référence que des ids connus.
+- Quelques mots d'exemple de SPEC écartés faute d'emoji non ambigu ou de
+  décomposition propre (grand, petit, pigeon, moulin→remplacé par mouton) :
+  qualité du corpus préférée au respect littéral de la liste d'exemples.
