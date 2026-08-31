@@ -19,10 +19,33 @@
 // Un contrat `speak()` réellement "résout à la fin" exigerait d'exposer un
 // événement de fin d'énoncé depuis src/voice/**, hors du périmètre OWNS de
 // cette leaf (src/voice/** appartient à A2, VERIFIED).
-import { cancelAll, speak as voiceSpeak } from '../../voice'
+//
+// `cancel` est délibérément un NO-OP — défaut réel trouvé par la suite e2e
+// (leaf F4) et corrigé par le driver : `src/voice/**` (A2) n'expose qu'UNE
+// file brute et sérialisée partagée par TOUT le jeu — narration d'écran (A4,
+// via ce driver) ET voix « moment à moment » d'un défi (E3/C1, via
+// challengeSpeak.ts, qui appelle `voiceSpeak()` directement, en dehors de
+// tout suivi par l'orchestrateur). `cancelAll()` (A2) vide INCONDITIONNELLEMENT
+// cette file entière, pas seulement l'énoncé que l'orchestrateur croit
+// annuler : à la transition d'écran (ex. carte du monde -> quête), un
+// `dismiss()`/`submit()` de l'orchestrateur pouvait donc effacer la consigne
+// du premier défi si elle venait tout juste d'être mise en file par le
+// composant de mécanique, sans qu'aucune erreur ne soit jamais visible
+// (observé de façon intermittente). Puisque la file de A2 sérialise déjà
+// tout proprement (aucun chevauchement possible), laisser un énoncé en cours
+// se terminer naturellement plutôt que de le couper est un compromis sûr :
+// l'orchestrateur reste correct dans son PROPRE suivi (il avance sa file dès
+// que `speak()` "résout", voir la limite ci-dessus), seul l'effet de bord
+// destructeur sur la file partagée est supprimé. Documenté en détail dans
+// ASSUMPTIONS.md ; correction plus complète possible côté A2 (annulation
+// ciblée par identifiant plutôt que globale) si nécessaire dans une itération
+// future.
+import { speak as voiceSpeak } from '../../voice'
 import type { NarrationDriver } from '../../narration/types'
 
 export const narrationDriver: NarrationDriver = {
   speak: (request) => Promise.resolve(voiceSpeak(request)),
-  cancel: () => cancelAll(),
+  cancel: () => {
+    // Intentionnellement un no-op — voir l'en-tête de ce fichier.
+  },
 }

@@ -31,6 +31,7 @@
 // périmètre OWNS de E1).
 
 import { useEffect, useMemo, useState } from 'react'
+import './WorldMap.css'
 import type { CurriculumLevel, ProgressState } from '../../types'
 import { curriculum } from '../../content/curriculum'
 import { buildRegionQuests, type RegionQuest } from './regionQuests'

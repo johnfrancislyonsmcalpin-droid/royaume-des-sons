@@ -29,6 +29,11 @@ import { GrandLivreScreen } from './screens/GrandLivreScreen'
 // chaque rendu.
 const REGION_QUESTS = buildRegionQuests(curriculum.levels)
 
+// Doit correspondre à HIDDEN_ZONE_SIZE_PX (src/parent/HiddenAccessGate.tsx,
+// non exporté) : la porte cachée occupe en permanence ce carré en coin
+// supérieur gauche (SPEC §9), en position fixed par-dessus tout le jeu.
+const HIDDEN_ACCESS_ZONE_PX = 64
+
 /** Écran affiché au tout premier rendu (SPEC §3, gate G2) :
  *  1. la vérification de la voix passe toujours en premier, une seule fois
  *     dans la vie de l'app (adulte uniquement, exempté de la règle de
@@ -262,9 +267,20 @@ export function GameRoot() {
 
   return (
     <div ref={rootRef} className="game-root" style={touchSafeStyle} onPointerDown={triggerFullscreenOnce}>
-      <NarrationProvider driver={narrationDriver}>
-        <ScreenNavigator screens={screens} initialScreenId={initialScreenId} />
-      </NarrationProvider>
+      {/* Défaut réel trouvé par la suite e2e (leaf F4) et corrigé par le
+       * driver : HiddenAccessGate (F1) occupe en permanence, en position
+       * fixed et z-index 9999, le coin supérieur GAUCHE du viewport
+       * (64x64px, SPEC §9) — mais rien n'empêchait le contenu de jeu de
+       * rendre un bouton exactement dans ce même coin (le 1er avatar, ou
+       * l'unique région débloquée d'une sauvegarde neuve), lui volant tout
+       * clic réel. Cette réserve garantit qu'AUCUN écran de jeu ne peut
+       * jamais placer un élément interactif dans la zone que la porte
+       * cachée occupe, sans changer le contrat d'aucun écran individuel. */}
+      <div style={{ paddingTop: HIDDEN_ACCESS_ZONE_PX, paddingLeft: HIDDEN_ACCESS_ZONE_PX }}>
+        <NarrationProvider driver={narrationDriver}>
+          <ScreenNavigator screens={screens} initialScreenId={initialScreenId} />
+        </NarrationProvider>
+      </div>
       <ParentOverlay onClose={handleParentOverlayClosed} />
     </div>
   )

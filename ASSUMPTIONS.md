@@ -454,3 +454,53 @@ jugé plus risqué à faire tard dans le build sans reverifier toute la chaîne
 vocale, donc reporté. Le délai différé ci-dessus reste correct et suffisant
 pour que la relecture soit VISIBLE, même si son rythme interne n'est
 qu'approximatif.
+
+## Trois défauts critiques trouvés par la vraie suite e2e (F4), corrigés par le driver
+
+La suite e2e (leaf F4) est la première à avoir exercé le jeu assemblé dans un
+VRAI navigateur (Chromium/Playwright), à la résolution tablette de référence
+(1024x768, `playwright.config.ts`) : elle a trouvé trois défauts d'intégration
+qu'aucun test unitaire/jsdom ne pouvait révéler, tous des blocages totaux de
+progression pour un enfant réel. F4 les a documentés en détail dans
+`e2e/helpers.ts` sans les corriger (hors de son OWNS, `e2e/**` uniquement) ;
+le driver les a corrigés immédiatement après, puis fait repasser toute la
+suite avec de VRAIS clics (`Locator.click()`, sans contournement) comme
+preuve — voir `e2e/level1.spec.ts` (parcours complet niveau 1 → boss, 1.8 min).
+
+1. **Le 1er avatar et l'unique région débloquée d'une sauvegarde neuve
+   étaient inatteignables au toucher.** `HiddenAccessGate` (F1) occupe en
+   permanence, `position: fixed`, coin supérieur gauche, 64×64px,
+   `z-index: 9999` (SPEC §9 : accès caché à l'écran parent). Rien
+   n'empêchait le contenu de jeu de placer un bouton dans ce même coin — ce
+   qui arrivait systématiquement pour le premier avatar et la région 1 (SPEC
+   les place toujours en premier). Corrigé dans `src/app/root/GameRoot.tsx` :
+   le contenu de jeu (pas l'overlay parent) reçoit une réserve
+   (`padding-top`/`padding-left` de 64px, `HIDDEN_ACCESS_ZONE_PX`) qui
+   garantit qu'aucun écran ne peut plus jamais placer un élément interactif
+   dans cette zone, sans changer le contrat d'aucun écran individuel.
+2. **La carte du monde n'avait aucune mise en page** (`src/world/map/*.css`
+   n'existait pas) : les boutons de région/quête s'empilaient en bloc par
+   défaut du navigateur, si bien que la 3e quête et le boss de CHAQUE région
+   se rendaient hors du viewport 1024x768, sans scroll possible
+   (`<html>{overflow:hidden}`, SPEC §3 anti pull-to-refresh). Corrigé par
+   l'ajout de `src/world/map/WorldMap.css` (flex-wrap pour régions et
+   quêtes, défilement interne à `.world-map` uniquement, jamais sur
+   `<html>`).
+3. **La consigne du tout premier défi d'une quête pouvait être annulée
+   silencieusement.** La voix d'un défi (`challengeSpeak.ts`, E3/C1) appelle
+   `src/voice` directement, en dehors du suivi de l'orchestrateur de
+   narration d'écran (A4) — mais les deux partagent la MÊME file brute
+   sérialisée (`src/voice/queue.ts`). `narrationDriver.cancel` (câblage A5)
+   appelait `cancelAll()` (A2), qui vide INCONDITIONNELLEMENT cette file
+   entière : à la transition carte-du-monde → quête, cela pouvait effacer la
+   consigne du premier défi si elle venait tout juste d'y être déposée, sans
+   qu'aucune erreur ne soit jamais visible. Corrigé en rendant
+   `narrationDriver.cancel` un no-op documenté (`src/app/root/narrationDriver.ts`) :
+   la file de A2 étant déjà sérialisée (aucun chevauchement possible),
+   laisser un énoncé en cours se terminer naturellement plutôt que le couper
+   élimine l'effet de bord destructeur sur la file partagée. L'orchestrateur
+   A4 reste correct dans son propre suivi (ses tests, qui vérifient l'appel à
+   `driver.cancel()` sur un driver MOCK, restent inchangés et passent
+   toujours — c'est le CÂBLAGE réel qui devient plus prudent, pas le contrat
+   d'A4). Correction plus complète possible côté A2 (annulation ciblée par
+   identifiant plutôt que globale) si nécessaire dans une itération future.

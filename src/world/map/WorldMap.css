@@ -1,0 +1,57 @@
+/* Mise en page de la carte du monde (leaf E1). Défaut réel trouvé par la
+   suite e2e (leaf F4) et corrigé par le driver : aucun fichier CSS n'existait
+   pour .world-map__regions/.world-map__quests, qui s'empilaient donc en
+   layout de bloc par défaut du navigateur — au-delà de la 2e région ou de la
+   2e quête, les boutons suivants se rendaient hors du viewport 1024x768 sans
+   aucun moyen de les atteindre (html a overflow: hidden, voir touchSafety.ts,
+   SPEC §3 anti pull-to-refresh). Cette feuille de style fait tenir les
+   régions et les quêtes en lignes qui s'enroulent (flex-wrap), et ajoute un
+   défilement interne à .world-map lui-même (jamais sur <html>) comme filet
+   de sécurité si un futur contenu ne tenait plus en une fois. */
+
+.world-map {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  max-height: 100svh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  box-sizing: border-box;
+  padding: 16px;
+}
+
+.world-map__regions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.world-map__region-slot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.world-map__connector {
+  width: 24px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--world-map-connector-color, #cbd5e1);
+  flex-shrink: 0;
+}
+
+.world-map__region {
+  flex-shrink: 0;
+}
+
+.world-map__quests {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.world-map__quest {
+  flex-shrink: 0;
+}
