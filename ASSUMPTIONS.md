@@ -109,3 +109,28 @@ n'est jamais réordonné, seulement complété. Revu et finalisé par la leaf F3
 - Quelques mots d'exemple de SPEC écartés faute d'emoji non ambigu ou de
   décomposition propre (grand, petit, pigeon, moulin→remplacé par mouton) :
   qualité du corpus préférée au respect littéral de la liste d'exemples.
+
+## Décisions (F2 — PWA/service worker + écran de vérification voix)
+
+- **VoiceCheckScreen s'affiche avant l'écran « Jouer », une seule fois**
+  (drapeau localStorage dédié `royaume-des-sons:voice-check-done`, distinct de
+  la clé de sauvegarde d'A3). Il amorce sa propre voix sur son propre geste
+  (bouton « Écouter un exemple ») plutôt que de dépendre du bouton Jouer de A1,
+  pour rester intégrable sans ordre imposé. `shouldShowVoiceCheck()` exposé
+  pour que l'intégration (node-A) décide de l'écran initial réel.
+- **Texte écrit accepté dans VoiceCheckScreen** (marche à suivre Android,
+  boutons « j'entends »/« je n'entends pas ») : SPEC désigne explicitement cet
+  écran comme le seul du jeu qui s'adresse à un lecteur adulte, donc hors du
+  périmètre « contenu pédagogique enfant » de CLAUDE.md règle 2 (JSON dans
+  src/content/). Confirmé par le driver à la revue de cette leaf.
+- **État muet (A2) traité comme déclencheur complémentaire, pas seul juge** :
+  `getMuteState()` signifie « deux échecs de démarrage de la voix », pas
+  littéralement « aucune voix fr-* » (un navigateur avec une voix par défaut
+  non française démarrerait sans jamais muter). La confirmation manuelle
+  adulte reste le détecteur principal ; un bouton « réessayer » recharge la
+  page plutôt que de changer d'état local, car la sélection de voix d'A2 n'est
+  résolue qu'une fois par instance du moteur.
+- **public/sw.js est un script classique** (pas de module ES) : un service
+  worker avec `export` nécessiterait `{type:'module'}` à l'enregistrement et
+  `tsc -b` refuse de typer un module hors `src/` — repassé en script simple,
+  testé via import `?raw` exécuté dans un contexte global simulé.
