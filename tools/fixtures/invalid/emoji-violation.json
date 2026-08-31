@@ -1,0 +1,5 @@
+[
+  { "id": "fixture-word-nomoji", "kind": "word", "level": 3, "text": "moto", "graphemeIds": ["m", "o", "t", "o"], "skillIds": ["L3-fusion-cv"] },
+  { "id": "fixture-word-a", "kind": "word", "level": 3, "text": "papa", "graphemeIds": ["p", "a", "p", "a"], "emoji": "🐆", "skillIds": ["L3-fusion-cv"] },
+  { "id": "fixture-word-b", "kind": "word", "level": 3, "text": "puma", "graphemeIds": ["p", "u", "m", "a"], "emoji": "🐆", "skillIds": ["L3-fusion-cv"] }
+]

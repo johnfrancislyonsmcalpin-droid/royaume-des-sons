@@ -1,0 +1,26 @@
+// Fixture délibérément invalide pour le contrôle négatif GB5b (voir
+// tools/check.mjs self-test --negative-controls) : shuffle() est appelé
+// directement sur le pool brut/non filtré `pool`, jamais passé par
+// .filter( sur la table de confusion ou les items rencontrés. Ceci est la
+// violation exacte que src/engine/distractors.ts (le vrai fichier) évite.
+
+function shuffle(items, rng) {
+  const copy = [...items]
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(rng() * (i + 1))
+    const tmp = copy[i]
+    copy[i] = copy[j]
+    copy[j] = tmp
+  }
+  return copy
+}
+
+export function pickDistractorsUnconstrained(target, pool, count, rng = Math.random) {
+  const selected = []
+  for (const item of shuffle(pool, rng)) {
+    if (selected.length >= count) break
+    if (item.id === target.id) continue
+    selected.push(item)
+  }
+  return selected
+}

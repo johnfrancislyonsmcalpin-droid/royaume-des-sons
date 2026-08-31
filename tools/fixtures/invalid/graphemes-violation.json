@@ -1,0 +1,11 @@
+[
+  {
+    "id": "fixture-bad-grapheme",
+    "kind": "word",
+    "level": 1,
+    "text": "la",
+    "graphemeIds": ["l", "a"],
+    "emoji": "❓",
+    "skillIds": ["L1-voyelles"]
+  }
+]

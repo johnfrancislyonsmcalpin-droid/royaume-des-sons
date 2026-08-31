@@ -1,0 +1,10 @@
+// Fixture délibérément invalide pour le contrôle négatif GB6 (voir
+// tools/check.mjs self-test --negative-controls) : une chaîne de contenu
+// pédagogique francophone en dur, comme celle que GB6 doit détecter si elle
+// apparaissait dans un vrai fichier src/**/*.{ts,tsx} hors src/content/**.
+
+export const consigneEnDur = 'Le chat est avec le chien.'
+
+export function directGreeting() {
+  return "Bravo, tu as trouvé le bon mot !"
+}

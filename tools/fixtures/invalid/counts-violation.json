@@ -1,0 +1,4 @@
+[
+  { "id": "fixture-syl-1", "kind": "syllable", "level": 3, "text": "la", "graphemeIds": ["l", "a"], "skillIds": ["L3-fusion-cv"] },
+  { "id": "fixture-syl-2", "kind": "syllable", "level": 3, "text": "mi", "graphemeIds": ["m", "i"], "skillIds": ["L3-fusion-cv"] }
+]
