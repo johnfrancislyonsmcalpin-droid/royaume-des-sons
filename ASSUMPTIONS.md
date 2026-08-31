@@ -267,3 +267,106 @@ convenait davantage à `bras`). `node tools/check.mjs content --emoji` confirme
 - **Limite connue** : l'anti-devinette peut faire rejouer la consigne mais ne
   peut pas bloquer dur l'appel `onAnswer` suivant, car `ChallengeComponentProps`
   (C1, figé) n'offre aucun mécanisme de refus d'entrée. Documenté, pas un bug.
+
+## Décisions techniques reportées par plusieurs leaves (A2-A4, C1, C3, D1, D2,
+## D4, E2) — comblées à la revue F3
+
+Ces leaves renvoyaient explicitement à « voir ASSUMPTIONS.md » dans leurs
+propres commentaires de tête de fichier sans qu'aucune entrée n'ait encore été
+écrite ici. Revue F3 : trou confirmé, comblé ci-dessous, une puce par décision,
+sans réordonner le reste du fichier.
+
+- **A2 — deux garde-fous non prescrits par SPEC** (`src/voice/watchdog.ts:1-20`,
+  `src/voice/chunking.ts:1-19`, `src/voice/voiceSelection.ts`) : un chien de
+  garde secondaire borne aussi l'attente d'`onend` (pas seulement `onstart` à
+  600 ms comme l'exige SPEC §3), pour éviter qu'un `onend` qui ne se déclenche
+  jamais bloque la file indéfiniment. `MAX_CHUNK_CHARS = 100` est calculé à
+  partir du débit `0.85` de SPEC §3 (≈12-16 caractères/s selon la voix), pour
+  rester à environ 2x sous le seuil de troncature de ~15 s de Chrome Android.
+  `VOICE_LOAD_GUARD_MS = 1000` est un délai de garde arbitraire pour le
+  chargement asynchrone des voix (`voiceschanged`), compromis latence/fiabilité
+  non chiffré par SPEC.
+- **A3 — fixture de migration v0→v1** (`src/save/migration.ts:1-16`) :
+  `SCHEMA_VERSION` valant déjà 1 dans le contrat figé, il n'existe aucune
+  version antérieure réelle à migrer. Une version `schemaVersion: 0` plausible
+  est modélisée comme la sauvegarde telle qu'elle existait avant l'ajout de
+  `progress.helpAdultCount` et `mastery.reviewQueue`, pour que le test de
+  migration (gate G-A3) exerce un vrai chemin de migration et non un cas vide.
+- **A4 — ordre de priorité des narrations** (`src/narration/priority.ts:1-27`) :
+  SPEC définit les 4 types de narration (`screen-intro`, `instruction`,
+  `feedback`, `help`) mais pas leur ordre d'interruption. Ordre retenu, du
+  moins au plus urgent : `screen-intro` < `instruction` < `help` < `feedback`
+  — une narration `interruptible: true` en cours peut être coupée par une
+  priorité supérieure ; justification pédagogique : la rétroaction sur une
+  action que l'enfant vient de faire (feedback) est le cœur du renforcement
+  immédiat (SPEC §6), donc la plus prioritaire.
+- **C1 — comportement exact du tap/lift/place** (`src/challenges/shared/
+  liftAndPlace.ts:1-19`) : SPEC §3/§6 fixe le principe (toucher une pièce la
+  soulève, toucher un emplacement la pose, toucher une pièce posée la
+  renvoie) mais pas les cas limites. Contrat retenu, imposé tel quel à C3/C4 :
+  toucher une autre pièce de réserve pendant qu'une pièce est déjà soulevée
+  bascule la sélection (pas d'ignorance du tap) ; toucher un emplacement déjà
+  occupé pendant qu'une pièce est soulevée est un no-op (il faut d'abord
+  libérer l'emplacement) ; état à 0 pièce/0 emplacement : tous les taps sont
+  des no-op silencieux, jamais d'exception.
+- **C3 — Forge** (`src/challenges/forge/softReturnSound.ts:1-14`) : le « son
+  doux » d'une pièce mal placée (SPEC §6.2) ne peut pas être une phrase du
+  compagnon (`ChallengeComponentProps` ne fournit que `speak(text)`, et
+  CLAUDE.md règle #2 interdit toute phrase en dur) ; une tonalité brève est
+  donc générée via l'API Web Audio (aucun fichier, aucune requête réseau —
+  CLAUDE.md règle #5), avec repli silencieux si l'API est indisponible.
+- **D1 — représentation de la décroissance** (`src/engine/decay.ts:26-45`) :
+  « repasser sous le seuil » (SPEC §7) est implémenté en vidant intégralement
+  `SkillMastery.last10` plutôt qu'en le tronquant partiellement — `isMastered`
+  redevient `false` avec la même sémantique qu'une compétence jamais
+  pratiquée, aucune réponse historique n'est falsifiée, et l'opération est
+  idempotente.
+- **D2 — répétition espacée** (`src/engine/spacing.ts:5-25`) :
+  `ReviewQueueItem.dueAfterQuestCount` (contrat figé) est traité comme une
+  valeur absolue (numéro de quête cumulatif à partir duquel l'item est dû),
+  pas un compte à rebours à décrémenter à chaque quête — évite de devoir
+  muter toute la file à chaque quête jouée. Le palier 3 (le dernier possible
+  dans `1 | 2 | 3`, figé par `src/types.ts`) boucle sur lui-même en cas de
+  nouvel échec (échéance repoussée de 8 quêtes) plutôt que d'inventer un
+  palier 4 hors contrat.
+- **D4 — duplication assumée de `isMastered`** (`src/engine/progression.ts:
+  21-32`) : `canUnlockNextLevel` redéfinit sa propre `isMastered` plutôt que
+  d'importer `src/engine/mastery.ts` (leaf D1, écrite en parallèle sous le
+  même dispatch), pour ne pas coupler deux leaves concurrentes à un module en
+  cours d'écriture ailleurs. Règle strictement identique en substance
+  (fenêtre de 10, seuil de 8, jamais `true` sur fenêtre incomplète) ; le
+  driver pourra factoriser les deux implémentations plus tard.
+- **E2 — barème chiffré des récompenses** (`src/world/rewards/
+  rewardScale.ts:1-24`) : SPEC §4 ne chiffre aucun montant (« barre d'XP,
+  pièces, cosmétiques » seulement). Barème retenu : 10 xp / 2 pièces par
+  défi réussi (rétroaction fréquente sans dépendre de la lecture d'une
+  barre) et un bonus de fin de quête de 100 xp / 50 pièces au boss (marque la
+  fin de région comme un jalon) ; aucun montant ne dépend du nombre d'indices
+  utilisés, conformément à SPEC §8 (« l'aide retarde la maîtrise, elle ne
+  punit pas »).
+
+## Limites de « La question du compagnon », trouvées par la revue F3
+
+- **`promptKey` énoncé littéralement plutôt qu'une phrase résolue — CORRIGÉ
+  par le driver après la revue F3.** `TextQuestion.promptKey` (ex.
+  `"l9-text-01-q1-qui-arrive"`) est une clé de narration ; aucun loader ne la
+  résolvait, donc `speak(question.promptKey)` énonçait la clé brute. Corrigé
+  par l'ajout de `src/content/questionPrompts.json` (21 questions, une par
+  `promptKey` des textes L9/L10) + `src/content/questionPrompts.ts`
+  (`getQuestionPrompt`, repli sûr vers la clé brute si absente) et le
+  branchement dans `CompanionQuestion.tsx`. Test de régression ajouté
+  prouvant explicitement que la clé brute n'est plus jamais énoncée pour une
+  clé connue. Toute nouvelle question ajoutée au corpus (voir CONTENT.md)
+  doit avoir une entrée correspondante dans ce fichier.
+- **Limite connue, NON résolue** : la mécanique n'utilise que la première
+  question d'un texte (`targetItem.questions?.[0]`,
+  `src/challenges/companionQuestion/CompanionQuestion.tsx`). Le contrat figé
+  (`Challenge`, `src/types.ts`) ne porte aucun champ pour indiquer QUELLE
+  question un `Challenge` donné interroge. Les textes niveau 10 ont pourtant
+  exactement 2 questions chacun (SPEC §5, vérifié par `content --counts`) :
+  en l'état, la seconde n'est jamais posée en jeu. Corriger demanderait
+  d'ajouter un champ `questionIndex` à `Challenge` (contrat figé) et
+  d'adapter le moteur de quête (E3, `src/world/quest/questAssembly.ts`) pour
+  instancier un `Challenge` par question plutôt qu'un seul par texte —
+  changement de contrat jugé trop risqué à faire tard dans le build sans
+  reverifier l'ensemble de la chaîne E3, donc reporté à une itération future.
