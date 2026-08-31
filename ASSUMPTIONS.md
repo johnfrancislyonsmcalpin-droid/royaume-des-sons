@@ -195,6 +195,33 @@ leaf future (E3, quête) pourra leur passer une phrase sourcée de
 `uiText.json` via `ChallengeComponentProps` si souhaité. Aussi corrigé au même
 moment : 10 emoji dupliqués dans le corpus (GB3), voir plus bas.
 
+## Décisions (F1 — écran parent) et correctif d'intégration voix
+
+- **"10 erreurs les plus fréquentes"** : `SaveFile` ne conserve aucun journal
+  de `ChallengeResult` individuels, seulement `MasteryState.skills[].last10`
+  (fenêtre glissante par compétence). Approximé au niveau **compétence**
+  (classée par nombre d'échecs décroissant dans `last10`, ≤10 lignes), pas au
+  niveau item précis. Liste vide avec message explicite si aucune tentative
+  enregistrée.
+- **Texte de test de la voix** (`PARENT_VOICE_TEST_PHRASE`) : nouvelle
+  constante dans `src/parent/content/parentContent.ts` (dossier exempté de
+  GB6 comme `src/content/**`) plutôt qu'une chaîne en dur dans `Settings.tsx`.
+- **Correctif d'intégration appliqué par le driver** (F1 avait documenté 2
+  écarts, tous deux résolus) :
+  1. `src/voice/engine.ts`/`index.ts` étendus avec `setRate`, `getRate`,
+     `listVoices`, `setVoiceOverride` (le moteur n'exposait aucun setter
+     runtime avant F1). `rate`/`selectedVoice` passés de `const` à `let`
+     mutables ; `voiceOverridden` empêche la sélection automatique
+     d'écraser un choix manuel. Tests de régression ajoutés à
+     `engine.test.ts` (6 nouveaux cas) ; `createNoopVoiceEngine` implémente
+     les mêmes méthodes en no-op. Les gates A2:G1-G5 restent tous PASS
+     (reverifiés) — cette extension ajoute une capacité, n'en retire aucune.
+  2. `src/parent/Settings.tsx` réécrit pour consommer `listVoices`/`setRate`/
+     `setVoiceOverride`/`getRate` de `src/voice` au lieu de lire
+     `window.speechSynthesis` directement (qui violait la convention "seul
+     src/voice/index.ts touche speechSynthesis"). Les réglages voix de
+     l'écran parent s'appliquent désormais réellement à la narration du jeu.
+
 ## Correction (B4/GB3) — 10 emoji dupliqués dans le corpus
 
 GB3 a trouvé 10 paires de mots partageant le même emoji (ex. ara/perroquet

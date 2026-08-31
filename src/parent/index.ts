@@ -1,0 +1,10 @@
+// Point d'entrée public de la leaf F1 (écran parent, SPEC §9).
+export { ParentScreen } from './ParentScreen'
+export { HiddenAccessGate } from './HiddenAccessGate'
+export type { HiddenAccessGateProps } from './HiddenAccessGate'
+export { ParentDashboard } from './Dashboard'
+export type { ParentDashboardProps } from './Dashboard'
+export { ParentSettings } from './Settings'
+export type { ParentSettingsProps } from './Settings'
+export { generateAdditionChallenge, isCorrectAnswer, HIDDEN_ACCESS_HOLD_MS } from './access'
+export type { AdditionChallenge } from './access'
