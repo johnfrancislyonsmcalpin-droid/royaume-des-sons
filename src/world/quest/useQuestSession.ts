@@ -11,7 +11,7 @@
 // quête — pour que l'appelant puisse persister à la même cadence que SPEC
 // §3 l'exige de la sauvegarde (« écriture après chaque défi, pas seulement
 // en fin de quête »), sans que ce hook ait à connaître localStorage.
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Challenge, ChallengeResult, ContentItem, HelpLevel, MasteryState, QuestState, ReviewQueueItem } from '../../types'
 import type { ChallengeSpeakFn } from '../../challenges/shared/contract'
 import { recordResult } from '../../engine/mastery'
@@ -44,6 +44,29 @@ async function speakSequential(speak: ChallengeSpeakFn, texts: readonly string[]
 
 function emptySkillMastery(skillId: string) {
   return { skillId, last10: [] as boolean[], masteredAt: null, decayedAt: null }
+}
+
+// Défaut réel trouvé en intégration (leaf A5, corrigé par le driver) : avancer
+// `currentIndex` de façon synchrone dans la même mise à jour que la réponse
+// correcte fait démonter/re-rendre le composant de défi (QuestRunner reçoit
+// un `challenge.id` différent) AVANT que la rétroaction de succès
+// (ChallengeFeedback) et la relecture syllabe par syllabe (PostSuccessReplay,
+// C1, SPEC §6 « ne doit jamais être sautée ») n'aient eu la moindre chance de
+// s'afficher — le contrat `ChallengeComponentProps` (C1, FIGÉ) n'expose aucun
+// signal "relecture terminée" que ce hook pourrait attendre. Correctif : sur
+// une réponse correcte, l'avancement réel de `currentIndex` est DIFFÉRÉ d'un
+// délai estimé à partir du nombre de graphèmes de l'item cible (proxy pour la
+// durée de la relecture), pendant lequel `currentChallenge` ne change pas —
+// le composant de défi reste donc monté avec le même `challenge.id`, son état
+// local "correct" et sa relecture ont le temps de s'exécuter normalement.
+// Heuristique documentée (ASSUMPTIONS.md), pas une garantie exacte tant que
+// `speak()` ne résout pas à la fin réelle de l'énoncé (limite connue d'A5).
+const ADVANCE_BASE_DELAY_MS = 1200
+const ADVANCE_PER_GRAPHEME_MS = 700
+const ADVANCE_MAX_DELAY_MS = 8000
+
+function estimateSuccessReplayDelayMs(graphemeCount: number): number {
+  return Math.min(ADVANCE_MAX_DELAY_MS, ADVANCE_BASE_DELAY_MS + graphemeCount * ADVANCE_PER_GRAPHEME_MS)
 }
 
 export interface UseQuestSessionArgs {
@@ -115,6 +138,15 @@ export function useQuestSession(args: UseQuestSessionArgs): UseQuestSessionResul
   const antiGuessRef = useRef<AntiGuessState>(initialAntiGuessState)
   const masteryRef = useRef<MasteryState>(initialMastery)
   const reviewQueueRef = useRef<ReviewQueueItem[]>(initialReviewQueue)
+  // Minuteur de l'avancement différé après une réponse correcte (voir
+  // estimateSuccessReplayDelayMs) ; nettoyé au démontage pour ne jamais
+  // avancer une quête que le joueur a déjà quittée.
+  const advanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => {
+    return () => {
+      if (advanceTimerRef.current !== null) clearTimeout(advanceTimerRef.current)
+    }
+  }, [])
 
   const currentChallenge = questState.challengeQueue[questState.currentIndex] ?? null
   const isComplete = currentChallenge === null
@@ -216,21 +248,30 @@ export function useQuestSession(args: UseQuestSessionArgs): UseQuestSessionResul
         ? [...questState.challengeQueue, { ...currentChallenge, id: `${currentChallenge.id}:requeue:${questState.results.length}` }]
         : questState.challengeQueue
 
-      const nextIndex = questState.currentIndex + 1
-      const nextQuestState: QuestState = {
-        ...questState,
-        challengeQueue: nextQueue,
-        currentIndex: nextIndex,
-        results: nextResults,
-      }
-      setQuestState(nextQuestState)
-      onQuestStateChange?.(nextQuestState)
+      // Persisté immédiatement (SPEC §3 "écriture après chaque défi") : le
+      // résultat et une éventuelle remise en file, mais PAS encore
+      // `currentIndex` — voir estimateSuccessReplayDelayMs ci-dessus.
+      const resultRecordedState: QuestState = { ...questState, challengeQueue: nextQueue, results: nextResults }
+      setQuestState(resultRecordedState)
+      onQuestStateChange?.(resultRecordedState)
       setHelpState(createChallengeHelpState())
       setUsedListenAgain(false)
 
-      if (nextIndex >= nextQueue.length) {
-        onQuestComplete?.(nextQuestState)
-      }
+      const graphemeCount = resolveItem(currentChallenge.targetItemId).graphemeIds.length
+      const delayMs = estimateSuccessReplayDelayMs(graphemeCount)
+      if (advanceTimerRef.current !== null) clearTimeout(advanceTimerRef.current)
+      advanceTimerRef.current = setTimeout(() => {
+        advanceTimerRef.current = null
+        setQuestState((prev) => {
+          const nextIndex = prev.currentIndex + 1
+          const advanced: QuestState = { ...prev, currentIndex: nextIndex }
+          onQuestStateChange?.(advanced)
+          if (nextIndex >= advanced.challengeQueue.length) {
+            onQuestComplete?.(advanced)
+          }
+          return advanced
+        })
+      }, delayMs)
     },
     [
       currentChallenge,

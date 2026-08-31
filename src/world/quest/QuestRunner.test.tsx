@@ -9,7 +9,7 @@
 // règle #7).
 import '@testing-library/jest-dom/vitest'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { Challenge, ChallengeOption, ContentItem, MasteryState, QuestState, ReviewQueueItem } from '../../types'
 import { QuestRunner } from './QuestRunner'
@@ -51,7 +51,7 @@ function emptyMastery(): MasteryState {
 }
 
 describe('QuestRunner — assemblage final (fumée)', () => {
-  it('rend la mécanique du premier défi, avance au suivant après une bonne réponse, puis se termine', async () => {
+  it('rend la mécanique du premier défi, avance au suivant après une bonne réponse (une fois la relecture post-succès laissée le temps de s\'afficher), puis se termine', { timeout: 15000 }, async () => {
     const user = userEvent.setup()
     const speak = vi.fn().mockResolvedValue(undefined)
     const questState: QuestState = {
@@ -94,17 +94,35 @@ describe('QuestRunner — assemblage final (fumée)', () => {
     expect(onMasteryChange).toHaveBeenCalled()
     expect(onReviewQueueChange).toHaveBeenCalled()
     expect(onQuestStateChange).toHaveBeenCalled()
-    const afterFirst = onQuestStateChange.mock.calls[0][0] as QuestState
-    expect(afterFirst.currentIndex).toBe(1)
-    expect(afterFirst.results).toHaveLength(1)
-    expect(afterFirst.results[0]).toMatchObject({ challengeId: 'c0', correct: true })
 
-    // Le deuxième défi est maintenant affiché (nouvelle cible : "i").
+    // Le résultat est persisté IMMÉDIATEMENT (SPEC §3 "écriture après chaque
+    // défi"), mais currentIndex n'avance PAS encore : le composant de défi
+    // "c0" doit rester monté (même challenge.id) le temps que sa rétroaction
+    // de succès et sa relecture post-succès (C1, SPEC §6 "ne doit jamais être
+    // sautée") aient une vraie fenêtre pour s'afficher — voir
+    // estimateSuccessReplayDelayMs dans useQuestSession.ts (défaut trouvé et
+    // corrigé en intégration, leaf A5 / driver).
+    const afterAnswer = onQuestStateChange.mock.calls[0][0] as QuestState
+    expect(afterAnswer.currentIndex).toBe(0)
+    expect(afterAnswer.results).toHaveLength(1)
+    expect(afterAnswer.results[0]).toMatchObject({ challengeId: 'c0', correct: true })
+    expect(screen.getByTestId('listen-touch')).toBeInTheDocument()
+    expect(onQuestComplete).not.toHaveBeenCalled()
+
+    // Après le délai estimé (1 graphème pour "a" -> 1200 + 700 = 1900ms),
+    // l'avancement réel se produit et le deuxième défi (cible : "i") s'affiche.
+    await waitFor(
+      () => {
+        const afterAdvance = onQuestStateChange.mock.calls[onQuestStateChange.mock.calls.length - 1][0] as QuestState
+        expect(afterAdvance.currentIndex).toBe(1)
+      },
+      { timeout: 4000 },
+    )
     expect(await screen.findByTestId('listen-touch-card-i-opt-target')).toBeInTheDocument()
 
     await user.click(screen.getByTestId('listen-touch-card-i-opt-target'))
 
-    expect(onQuestComplete).toHaveBeenCalledTimes(1)
+    await waitFor(() => expect(onQuestComplete).toHaveBeenCalledTimes(1), { timeout: 4000 })
     expect(screen.getByTestId('quest-runner-complete')).toBeInTheDocument()
   })
 
