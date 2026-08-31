@@ -1,0 +1,43 @@
+{
+  "a": "a",
+  "i": "i",
+  "o": "o",
+  "u": "u",
+  "é": "é",
+
+  "l": "lll",
+  "m": "mmm",
+  "r": "rrr",
+  "s": "sss",
+  "p": "peu",
+  "t": "teu",
+
+  "f": "fff",
+  "v": "vvv",
+  "n": "nnn",
+  "d": "deu",
+  "b": "beu",
+  "c-dur": "keu",
+  "g-dur": "gueu",
+  "k": "keu",
+  "e-muet": "",
+
+  "ou": "ou",
+  "on": "on",
+  "an": "an",
+  "en": "en",
+  "in": "in",
+  "oi": "oi",
+  "eu": "eu",
+  "ch": "chhh",
+  "gn": "gne",
+  "au": "au",
+  "eau": "eau",
+  "ai": "ai",
+  "ei": "ei",
+
+  "c-doux": "sss",
+  "g-doux": "jjj",
+  "qu": "keu",
+  "ph": "fff"
+}

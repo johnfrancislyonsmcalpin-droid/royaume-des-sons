@@ -53,3 +53,25 @@ n'est jamais réordonné, seulement complété. Revu et finalisé par la leaf F3
   les gates `N4` de `.unlazy/royaume/gates/node-*.md` + `RG2` de `GATES.md`
   utilisent désormais `tsc -b`. Toute leaf/agent futur doit utiliser
   `npx tsc -b` (jamais `tsc --noEmit` seul) pour l'auto-vérification.
+
+## Décisions de contenu (B3 — table de confusion et de prononciation)
+
+- **`z` et `j` comme identifiants symboliques dans `confusion.json` uniquement.**
+  Le curriculum (B1) n'a pas de graphème `z` ou `j` isolé : le son /z/ vient de
+  la règle « s entre voyelles » (niveau 7) et le son /ʒ/ de `g-doux`. Pour
+  rester fidèle aux paires phonétiques explicitement listées en SPEC §7 (s/z,
+  ch/j), `confusion.json` déclare quand même `"s": ["z", ...]` et
+  `"ch": ["j", ...]` avec des ids symboliques qui ne correspondent à aucun
+  `ContentItem.graphemeIds` réel du corpus. Vérifié sans risque : la sélection
+  de distracteurs de D2 (`src/engine/distractors.ts`) retombe proprement sur
+  son repli (items déjà rencontrés du même niveau) quand la recherche par
+  graphème confusable ne trouve aucun item, donc `z`/`j` ne produisent jamais
+  de crash ni de distracteur invalide, seulement un repli silencieux.
+- **`p/q` modélisé comme `p ↔ qu`** : le curriculum n'enseigne pas de graphème
+  `q` isolé (il n'existe que dans le digramme `qu`, niveau 7), qui est le seul
+  porteur de la forme visuelle de la lettre q.
+- **Schwas muets généralisés à toutes les occlusives** (p→"peu", t→"teu",
+  b→"beu", d→"deu", c-dur/k/qu→"keu", g-dur→"gueu") pour éviter que le moteur
+  vocal ne lise le son comme le nom de la lettre. SPEC ne prescrit
+  explicitement que p→"peu" ; les autres suivent le même principe linguistique
+  par jugement de B3, à valider à l'oreille avec la vraie voix Android.
