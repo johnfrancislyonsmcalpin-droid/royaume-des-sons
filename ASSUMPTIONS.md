@@ -75,3 +75,9 @@ n'est jamais réordonné, seulement complété. Revu et finalisé par la leaf F3
   vocal ne lise le son comme le nom de la lettre. SPEC ne prescrit
   explicitement que p→"peu" ; les autres suivent le même principe linguistique
   par jugement de B3, à valider à l'oreille avec la vraie voix Android.
+
+## Décisions de découplage (E1 — carte du monde)
+
+- **Bouton tactile local** (`TapButton.tsx`, même précédent que `E2/TouchButton.tsx`) en attendant `TapTarget` (C1, en cours en parallèle) ; signature de `WorldMap` conçue pour ne pas changer au branchement.
+- **Callback `onAnnounce?: (text) => void`** plutôt qu'un import direct de `src/narration/**`, pour rester découplé pendant le dispatch parallèle.
+- **État "completed" d'une région dérivé de `progress.currentLevel`** (`level < currentLevel`), pas de nouveau champ dans `ProgressState` (contrat figé). Limite connue : en mode aventure libre après le niveau 10, la région 10 reste affichée "current", jamais "completed" — à revoir si le mode aventure libre (SPEC §5 niveau 10) l'exige.
