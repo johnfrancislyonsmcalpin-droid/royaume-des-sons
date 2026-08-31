@@ -15,6 +15,7 @@
 //   node tools/check.mjs code --no-hardcoded-content
 //   node tools/check.mjs self-test --negative-controls
 //   node tools/check.mjs all
+//   node tools/check.mjs report
 
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -27,6 +28,7 @@ import { checkEmoji } from './lib/checks/emoji.mjs'
 import { checkPronunciation } from './lib/checks/pronunciation.mjs'
 import { checkConfusionIds, checkNoUnconstrainedRandom } from './lib/checks/distractors.mjs'
 import { checkNoHardcodedContent, scanSourceForHardcodedContent } from './lib/checks/hardcoded.mjs'
+import { buildReportSections, formatReport } from './lib/report.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(__dirname, '..')
@@ -38,6 +40,7 @@ const CONFUSION_PATH = path.join(CONTENT_DIR, 'confusion.json')
 const DISTRACTORS_SRC_PATH = path.join(ROOT, 'src', 'engine', 'distractors.ts')
 const SRC_DIR = path.join(ROOT, 'src')
 const FIXTURES_DIR = path.join(__dirname, 'fixtures', 'invalid')
+const GATES_DIR = path.join(ROOT, '.unlazy', 'royaume', 'gates')
 
 // --- Sous-commandes content ------------------------------------------------
 
@@ -242,6 +245,52 @@ function runAll() {
   return false
 }
 
+// --- Sous-commande report ----------------------------------------------------
+//
+// GF5 (leaf-F4.md) / G-F9 (SPEC §12) : re-mesure chaque chiffre du rapport
+// final au moment de l'exécution — curriculum.json, corpus/*.json et
+// .unlazy/royaume/gates/*.md sont relus depuis le disque à chaque appel (voir
+// tools/lib/report.mjs), et chaque sous-commande de contenu ci-dessus est
+// réellement ré-exécutée ici plutôt que d'afficher un résultat mémorisé d'un
+// run précédent. Le marqueur "rapport généré" sanctionne la génération du
+// rapport lui-même (toutes les données ont pu être rassemblées sans
+// exception) — il ne prétend PAS que tout le contenu est valide : le détail
+// OK/ÉCHEC de chaque sous-commande de contenu est imprimé dans le corps du
+// rapport pour que ce soit un lecteur humain, pas ce marqueur, qui juge de
+// l'état du contenu (c'est le rôle de `node tools/check.mjs all`, gate
+// séparée).
+function runReport() {
+  let sections
+  try {
+    const curriculumData = readJson(CURRICULUM_PATH)
+    const corpusItems = loadCorpus(CORPUS_DIR)
+    sections = buildReportSections({ curriculumData, corpusItems, gatesDir: GATES_DIR })
+  } catch (err) {
+    console.error(`report : impossible de rassembler les données du rapport : ${err.message}`)
+    return false
+  }
+
+  const contentCheckOrder = [
+    'content --graphemes',
+    'content --counts',
+    'content --emoji',
+    'content --pronunciation',
+    'content --distractors',
+    'code --no-hardcoded-content',
+  ]
+  const checkResults = []
+  for (const key of contentCheckOrder) {
+    console.log(`\n> node tools/check.mjs ${key}`)
+    const ok = SUBCOMMANDS[key]()
+    checkResults.push({ key, ok })
+  }
+
+  console.log('')
+  console.log(formatReport(sections, checkResults))
+  console.log('rapport généré')
+  return true
+}
+
 function main() {
   const args = process.argv.slice(2)
   const key = args.join(' ')
@@ -249,6 +298,8 @@ function main() {
   let ok
   if (key === 'all') {
     ok = runAll()
+  } else if (key === 'report') {
+    ok = runReport()
   } else if (Object.prototype.hasOwnProperty.call(SUBCOMMANDS, key)) {
     ok = SUBCOMMANDS[key]()
   } else {
@@ -256,6 +307,7 @@ function main() {
     console.error('Sous-commandes disponibles :')
     for (const k of Object.keys(SUBCOMMANDS)) console.error(`  node tools/check.mjs ${k}`)
     console.error('  node tools/check.mjs all')
+    console.error('  node tools/check.mjs report')
     process.exit(2)
   }
 
