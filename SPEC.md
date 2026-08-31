@@ -2,16 +2,19 @@
 ## Jeu RPG d'apprentissage de la lecture en français, pour un enfant de 5 ans, sur tablette
 
 > **Invocation prévue :** `/unlazy tree 4` puis « implémente SPEC.md intégralement ».
-> Ce document est la source de vérité. Il est écrit pour être consommé sous discipline unlazy v2 :
-> les critères d'acceptation de la section 12 sont destinés à être recopiés dans `GATES.md` et
-> `gates/*.md` **avant** tout travail réel, avec leurs lignes `CHECK:` / `EXPECT:`.
+> Ce document est la source de vérité. Il est écrit pour être consommé sous discipline unlazy v2,
+> en **mode orchestré** : les critères d'acceptation de la section 12 sont destinés à être recopiés
+> dans `.unlazy/<scope>/PLAN.md` et `.unlazy/<scope>/gates/leaf-*.md` / `node-*.md` **avant** tout
+> travail réel, avec leurs lignes `CHECK:` / `EXPECT:`. L'emplacement fait foi selon la version du
+> skill installée dans `.claude/skills/unlazy` (voir `references/orchestration.md` et
+> `references/parallel.md`) ; le contenu des gates de la section 12 fait foi, pas leur emplacement.
 
 ---
 
 ## 0. Mode de travail (unlazy)
 
 - **Mode : orchestré.** L'arbre a 4 niveaux : la tâche (L1), 6 branches (L2), leaves de travail réel (L3-L4).
-- **Rule zero.** Avant d'écrire une ligne de code : `PLAN.md` (contrat : arborescence de fichiers, interfaces TypeScript partagées, conventions de nommage, propriété des fichiers par leaf) puis un fichier de gates par leaf sous `gates/`. Les gates de la section 12 sont le point de départ, pas la liste finale : chaque leaf ajoute les siens.
+- **Rule zero.** Avant d'écrire une ligne de code : `.unlazy/<scope>/PLAN.md` (contrat : arborescence de fichiers, interfaces TypeScript partagées, conventions de nommage, propriété des fichiers par leaf, table de dispatch Owns/Needs/Tier/Planned wave/State) puis un fichier de gates par leaf et par branche sous `.unlazy/<scope>/gates/` (`leaf-*.md` / `node-*.md`), conformément à la version du skill unlazy installée dans `.claude/skills/unlazy`. Les gates de la section 12 sont le point de départ, pas la liste finale : chaque leaf ajoute les siens.
 - **Contrats avant fan-out.** Les types du domaine (`Grapheme`, `Skill`, `ContentItem`, `Challenge`, `MasteryState`, `SaveFile`, `NarrationRequest`) sont figés dans `src/types.ts` et dans `PLAN.md` avant qu'une seule leaf ne démarre.
 - **Gates d'intégration** sur chaque branche : les leaves peuvent toutes être vertes et le produit cassé.
 - **Report audit.** Tout nombre du rapport final est re-mesuré au moment du rapport (`node tools/check.mjs report`), jamais écrit de mémoire.
@@ -64,7 +67,9 @@ L1  Le Royaume des Sons
 
 **Pile.** Vite + React + TypeScript. `vitest` pour les tests unitaires, `playwright` pour 4-6 tests e2e headless. Zéro dépendance réseau à l'exécution. Aucun backend, aucun compte.
 
-**Cible.** iPad Safari 17+ et Android Chrome, paysage. Ordinateur toléré pour le développement mais non optimisé.
+**Cible.** Tablette Android, Chrome, paysage. iOS et Safari sont hors périmètre : aucun code, aucune
+mitigation ni aucune instruction de livraison spécifique à iOS/Safari/WebKit. Ordinateur toléré pour
+le développement mais non optimisé.
 
 **Interaction tactile.**
 - Zones tactiles ≥ 64 × 64 px CSS, espacées d'au moins 16 px.
@@ -76,24 +81,24 @@ L1  Le Royaume des Sons
 - `window.speechSynthesis`, voix `fr-CA` en priorité, sinon `fr-FR`, sinon toute voix `fr-*`.
 - La liste des voix se charge de façon asynchrone : attendre `voiceschanged`, avec un délai de garde.
 - L'audio ne peut démarrer qu'après un geste utilisateur : le premier écran est un gros bouton « Jouer » qui amorce la voix.
-- Module `speak()` centralisé : file d'attente sérialisée, annulation propre au changement d'écran, débit ~0,85, **watchdog** (si `onstart` ne se déclenche pas en 600 ms, annuler et réessayer une fois ; au deuxième échec, afficher l'icône « son muet » et continuer sans bloquer le jeu), et parade au gel de l'API iOS (`pause()`/`resume()` périodique pendant les longues énonciations).
+- Module `speak()` centralisé : file d'attente sérialisée, annulation propre au changement d'écran, débit ~0,85, **watchdog** (si `onstart` ne se déclenche pas en 600 ms, annuler et réessayer une fois ; au deuxième échec, afficher l'icône « son muet » et continuer sans bloquer le jeu), et **découpage des énoncés** : Chrome Android tronque les énonciations longues (au-delà d'environ 15 s) — aucune consigne ne doit dépasser ce seuil ; découper en plusieurs `SpeechSynthesisUtterance` chaînées via la file d'attente plutôt qu'un texte long unique.
 - **Table de prononciation graphème → texte à énoncer**, dans `src/content/pronunciation.json`, pour que le son de `m` soit énoncé « mmm » et non « ème », `p` « peu » (occlusive brève, pas « pé »), etc. Cette table est du contenu, pas du code, et doit couvrir 100 % des graphèmes du curriculum.
-- **Écran de vérification de la voix au premier lancement** : le jeu énonce une phrase test et demande à l'adulte de confirmer qu'il entend une voix française. Si aucune voix `fr-*` n'existe, afficher une page d'explication destinée à l'adulte (avec la marche à suivre iOS/Android pour installer une voix française) — c'est le seul écran du jeu qui s'adresse à un lecteur adulte.
+- **Écran de vérification de la voix au premier lancement** : le jeu énonce une phrase test et demande à l'adulte de confirmer qu'il entend une voix française. Si aucune voix `fr-*` n'existe, afficher une page d'explication destinée à l'adulte (avec la marche à suivre Android pour installer une voix française : Paramètres > Système > Langues > Synthèse vocale > moteur **Google Text-to-Speech** > paramètres > installer les données vocales du **français**) — c'est le seul écran du jeu qui s'adresse à un lecteur adulte.
 
 **Persistance.**
 - `localStorage`, schéma **versionné** (`schemaVersion`) avec fonction de migration et test de migration.
 - Écriture après chaque défi, pas seulement en fin de quête : l'app peut être tuée à tout moment. Reprise exacte au défi en cours après rechargement.
-- **Risque connu à traiter, pas à ignorer :** sur iOS, le stockage d'un site web ordinaire peut être purgé après 7 jours sans visite. Mitigation : (a) le README impose l'ajout à l'écran d'accueil (mode standalone, exempté de la purge) ; (b) l'écran parent affiche la date de la dernière sauvegarde et propose un export JSON ; (c) rappel d'export automatique tous les 10 jours de jeu.
+- Le risque de purge après 7 jours sans visite (propre à iOS/Safari) ne s'applique pas sur la cible Android/Chrome. L'export JSON reste un filet de sécurité général contre la perte de données (changement d'appareil, désinstallation, effacement manuel du stockage par l'utilisateur), pas une protection contre une purge automatique : l'écran parent affiche la date de la dernière sauvegarde et propose un export JSON, avec rappel d'export automatique tous les 10 jours de jeu.
 
 **Plein écran.**
-- Ne pas dépendre de `requestFullscreen` (support inégal sur iOS). La cible est le **mode standalone** via ajout à l'écran d'accueil (`display: standalone` dans le manifeste, `apple-mobile-web-app-capable`).
-- Le README doit expliquer **l'accès guidé (iOS) / l'épinglage d'app (Android)** : sans cela, un enfant de 5 ans quittera le jeu en trois secondes. C'est une instruction de livraison, pas une option.
+- `requestFullscreen` est utilisable directement sur Chrome Android (support fiable sur la cible), en plus du mode **standalone** via ajout à l'écran d'accueil (`display: standalone` dans le manifeste). Les deux mécanismes sont complémentaires : standalone dès le lancement depuis l'icône, `requestFullscreen` déclenché sur le premier geste utilisateur sinon.
+- Le README doit expliquer l'**épinglage d'écran Android** (Paramètres > Sécurité > Épinglage d'écran) : sans cela, un enfant de 5 ans quittera le jeu en trois secondes. C'est une instruction de livraison, pas une option.
 
 **PWA / service worker.** Manifeste + service worker de cache simple, avec numéro de version dans le nom du cache et bouton « vider le cache et recharger » dans l'écran parent. Si le service worker s'avère instable, le désactiver et l'écrire dans `ASSUMPTIONS.md` plutôt que de livrer un cache empoisonné.
 
 **Assets.** Aucune image externe, aucun binaire téléchargé. SVG inline, formes géométriques simples, animations CSS. Les mots sont illustrés par des **emoji** dans un cadre stylisé ; **un mot n'entre dans le corpus que s'il a un emoji non ambigu** (contrainte vérifiée par le checker).
 
-**Typographie.** Police pensée pour l'apprentissage : Andika, sinon Atkinson Hyperlegible, sinon sans-serif système — **avec un « a » à un seul étage**, obligatoire. Police embarquée localement (pas de CDN). Taille minimale 36 px pour tout ce qui doit être lu par l'enfant, interlettrage légèrement augmenté, minuscules d'imprimerie uniquement jusqu'au niveau 8.
+**Typographie.** Police pensée pour l'apprentissage : **Andika**, avec un « a » à un seul étage, obligatoire. Andika est fournie par le paquet npm `@fontsource/andika` (déjà installé) : importer les sous-ensembles `latin` et `latin-ext`, graisse 400, dans `src/main.tsx`, et l'appliquer comme police principale. Pas de `public/fonts/`, pas de CDN — le paquet embarque déjà les fichiers de police localement. Taille minimale 36 px pour tout ce qui doit être lu par l'enfant, interlettrage légèrement augmenté, minuscules d'imprimerie uniquement jusqu'au niveau 8.
 
 **Couleur.** Palette de 6 à 8 couleurs, contraste ≥ 4.5:1. La réussite et l'échec ne sont **jamais** signalés par la seule couleur : forme + son + animation + phrase du compagnon.
 
@@ -223,7 +228,7 @@ Pour chaque leaf, dans l'ordre : **implémenter complètement** (aucun TODO, auc
 
 ## 12. Gates de départ
 
-À recopier dans `GATES.md` (racine) et à répartir dans `gates/<leaf>.md`. Chaque leaf ajoute ses propres gates ; ceux-ci sont le plancher, pas le plafond. Les commandes `CHECK:` doivent exister — écrire `tools/check.mjs` (Node, sans dépendance) comme une leaf à part entière de la branche B.
+À recopier dans `.unlazy/<scope>/PLAN.md` et à répartir dans `.unlazy/<scope>/gates/leaf-<id>.md` / `node-<id>.md`, selon la convention de la version du skill unlazy installée dans `.claude/skills/unlazy` (voir `references/orchestration.md`, `references/parallel.md`, `references/gates.md`). L'emplacement ci-dessus est indicatif ; le contenu des gates qui suit fait foi, pas son emplacement. Chaque leaf ajoute ses propres gates ; ceux-ci sont le plancher, pas le plafond. Les commandes `CHECK:` doivent exister — écrire `tools/check.mjs` (Node, sans dépendance) comme une leaf à part entière de la branche B.
 
 ```
 # Gates: Le Royaume des Sons
@@ -326,7 +331,7 @@ Pour chaque leaf, dans l'ordre : **implémenter complètement** (aucun TODO, auc
 
 ## Livraison
 
-- [ ] G-F6: README couvre lancement, ajout à l'écran d'accueil, accès guidé iOS / épinglage Android, installation d'une voix française, export de sauvegarde
+- [ ] G-F6: README couvre lancement, ajout à l'écran d'accueil, épinglage d'écran Android (Paramètres > Sécurité > Épinglage d'écran), installation d'une voix française (Paramètres > Système > Langues > Synthèse vocale > Google Text-to-Speech > pack français), export de sauvegarde
   EVIDENCE: pending
 
 - [ ] G-F7: ASSUMPTIONS.md liste chaque décision prise sans consigne
@@ -346,5 +351,5 @@ Pour chaque leaf, dans l'ordre : **implémenter complètement** (aucun TODO, auc
 ## 13. Rapport final attendu
 
 Coller le ledger complet, N sur N, avec pour chaque gate sa preuve. Y ajouter :
-la liste des gates `ABANDON` avec raison ; les limites connues (notamment `speechSynthesis` sur iOS) ;
+la liste des gates `ABANDON` avec raison ; les limites connues (notamment la troncature de `speechSynthesis` au-delà d'environ 15 s sur Chrome Android) ;
 et la marche à suivre en trois lignes pour lancer le jeu sur la tablette.

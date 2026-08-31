@@ -13,7 +13,7 @@
     "test:watch": "vitest",
     "e2e": "playwright test",
     "check": "node tools/check.mjs all",
-    "gates": "node .claude/skills/unlazy/scripts/gate-check.mjs GATES.md"
+    "gates": "node .claude/skills/unlazy/scripts/gate-check.mjs --root . --cwd . --status"
   },
   "dependencies": {
     "@fontsource/andika": "^5.3.0",
