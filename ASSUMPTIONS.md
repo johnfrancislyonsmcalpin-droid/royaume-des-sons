@@ -36,3 +36,20 @@ n'est jamais réordonné, seulement complété. Revu et finalisé par la leaf F3
   qui) ne sont exemptés de la contrainte de décodabilité qu'à partir du niveau 8
   et seulement quand `isSightWord: true` est déclaré explicitement dans le
   contenu (jamais par déduction implicite).
+
+## Piège d'outillage découvert pendant le dispatch de la vague 1
+
+- **`tsc --noEmit` seul à la racine ne vérifie RIEN et réussit toujours.**
+  `tsconfig.json` est un config "solution" (`files: []` + `references` vers
+  `tsconfig.app.json`/`tsconfig.node.json`), donc `tsc --noEmit` sans `-b` ne
+  résout aucun fichier : exit 0 systématique, y compris avec des erreurs de
+  type réelles dans le code. Chaque leaf de la vague 1 a lancé cette commande
+  en auto-vérification et a rapporté "0 erreur" à tort. Le driver ne l'a
+  découvert qu'en réconciliant un avertissement de la leaf A1 (qui avait
+  elle-même contourné le piège avec `tsc --noEmit -p tsconfig.app.json`) avec
+  une reverification manuelle : `npx tsc -b` a immédiatement révélé une
+  vraie erreur de type dans `src/voice/watchdog.test.ts` (leaf A2), invisible
+  jusque-là. Corrigé : `npm run typecheck` = `tsc -b` (package.json), et tous
+  les gates `N4` de `.unlazy/royaume/gates/node-*.md` + `RG2` de `GATES.md`
+  utilisent désormais `tsc -b`. Toute leaf/agent futur doit utiliser
+  `npx tsc -b` (jamais `tsc --noEmit` seul) pour l'auto-vérification.
