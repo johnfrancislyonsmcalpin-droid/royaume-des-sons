@@ -166,3 +166,48 @@ constatée cette fois, mais c'est de la chance de timing, pas une garantie.
 Corrigé : le contrat (PLAN.md, section Conventions) interdit désormais
 explicitement toute commande git affectant l'arbre entier dans un prompt de
 leaf dispatchée en parallèle.
+
+## Point de réconciliation ouvert (C2 vs C4) — phrases du compagnon en dur
+
+C2 (listenTouch/readShow/trueFalseWord/companionQuestion) code en dur 8 courtes
+phrases d'encouragement du compagnon (ex. "Bravo, tu as trouvé !") passées à
+`ChallengeFeedback`, par analogie avec les libellés/narrations déjà en dur dans
+E1/E2/E4 (aria-labels, textes de région/récompense — jamais lus/décodés par
+l'enfant, seulement énoncés ou destinés à un lecteur d'écran adulte). C4 a fait
+le choix inverse : ne rend PAS `ChallengeFeedback` du tout, jugeant qu'une
+phrase compagnon codée en dur violerait CLAUDE.md règle #2 à la lettre.
+**TRANCHÉ.** GB6 (leaf B4, exécuté réellement) a trouvé 29 occurrences de
+texte français en dur : les 8 phrases de compagnon de C2, ET les libellés de
+narration d'E1 (`regionNarration.ts`) et E4 (`grandLivreNarration.ts`) déjà
+committés — le précédent WorldMap/GrandLivre n'était donc PAS une exemption
+valide, seulement un angle mort de GB6 avant que la vraie heuristique existe.
+Correction appliquée par le driver : toutes ces phrases sont extraites vers
+`src/content/uiText.json` (nouveau, texte d'interface/narration — distinct du
+corpus pédagogique décodable, mais soumis comme lui à la règle #2 « aucune
+phrase en dur dans le code ») + un loader `src/content/uiText.ts` avec
+interpolation `{cle}`. `regionNarration.ts`, `grandLivreNarration.ts` et les 4
+composants de C2 mis à jour pour l'importer. `node tools/check.mjs code
+--no-hardcoded-content` confirme `0 occurrence` après correction. **C3/C4
+avaient la bonne intuition** (ne pas coder de phrase compagnon en dur) mais
+n'avaient pas la solution complète (ils s'abstiennent simplement de rendre
+`ChallengeFeedback`) — non modifiés, cette abstention reste valide, mais une
+leaf future (E3, quête) pourra leur passer une phrase sourcée de
+`uiText.json` via `ChallengeComponentProps` si souhaité. Aussi corrigé au même
+moment : 10 emoji dupliqués dans le corpus (GB3), voir plus bas.
+
+## Correction (B4/GB3) — 10 emoji dupliqués dans le corpus
+
+GB3 a trouvé 10 paires de mots partageant le même emoji (ex. ara/perroquet
+🦜, pull/chemise 👕, mimosa/fleur 🌼) : dans chaque cas, le mot introduit au
+niveau le plus bas (3, 4 ou 5) a reçu un nouvel emoji distinct et non ambigu,
+le mot du niveau supérieur (6 ou 7) gardant l'original. `ara` et `tiara`
+n'ayant pas d'emoji distinctif exact disponible dans le jeu de caractères
+Unicode courant (synonymes proches de perroquet/couronne), un emoji
+visuellement distinct et raisonnablement associable a été choisi (🦩 pour
+ara, 🎀 pour tiara) plutôt que de remplacer ces mots par d'autres — cas
+similaire pour `canif` (✂️, plutôt que le 🔪 déjà pris par couteau). Les 9
+autres candidats (`totem`→🏛️, `fort`→🏰, `lot`→🏆, `sport`→🏅, `mimosa`→🌻,
+`tilapia`→🐠, `pull`→🥼) sont des associations directes plus précises que
+l'original (ex. `fort`→🏰 représente en fait mieux le mot que 💪, qui
+convenait davantage à `bras`). `node tools/check.mjs content --emoji` confirme
+`0 missing, 0 duplicate` après correction.

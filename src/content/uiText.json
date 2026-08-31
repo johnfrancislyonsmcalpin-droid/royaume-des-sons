@@ -1,0 +1,40 @@
+{
+  "map": {
+    "regionNames": {
+      "clairiere-des-voyelles": "La Clairière des Voyelles",
+      "foret-des-premieres-consonnes": "La Forêt des Premières Consonnes",
+      "pont-des-syllabes": "Le Pont des Syllabes",
+      "village-des-mots": "Le Village des Mots",
+      "grotte-des-sons-qui-claquent": "La Grotte des Sons qui Claquent",
+      "lac-des-sons-a-deux-lettres": "Le Lac des Sons à Deux Lettres",
+      "marais-des-lettres-muettes": "Le Marais des Lettres Muettes",
+      "route-des-phrases": "La Route des Phrases",
+      "tour-des-histoires": "La Tour des Histoires",
+      "chateau-du-sortilege": "Le Château du Sortilège"
+    },
+    "overview": "Voici la carte du royaume. Touche une région lumineuse pour commencer une quête.",
+    "regionLocked": "{name}, encore cachée dans la brume.",
+    "regionCompleted": "{name}, terminée. Bravo !",
+    "regionCurrent": "{name}, prête pour une nouvelle quête.",
+    "regionTouchLocked": "{name} est encore cachée dans la brume. Continue tes quêtes pour la libérer.",
+    "regionTouchOpen": "Tu ouvres {name}.",
+    "questListAppearance": "Voici les quêtes de {name}.",
+    "questTouchBoss": "Défi du gardien de {name} !",
+    "questTouchRegular": "Quête {position} de {name}."
+  },
+  "grandLivre": {
+    "empty": "Ton Grand Livre est encore vide. Il se remplira des mots que tu sauras bien lire.",
+    "intro": "Voici ton Grand Livre. Touche un mot, une phrase ou un texte pour le réécouter.",
+    "listen": "Écoute."
+  },
+  "challenges": {
+    "listenTouchSuccess": "Bravo, tu as trouvé !",
+    "listenTouchRetry": "On réessaie !",
+    "readShowSuccess": "Bravo, tu as bien lu !",
+    "readShowRetry": "On regarde encore !",
+    "trueFalseSuccess": "Bravo, bien décodé !",
+    "trueFalseRetry": "On décode encore !",
+    "companionQuestionSuccess": "Bravo, tu as bien écouté !",
+    "companionQuestionRetry": "On réécoute l'histoire !"
+  }
+}
