@@ -211,3 +211,32 @@ autres candidats (`totem`→🏛️, `fort`→🏰, `lot`→🏆, `sport`→🏅
 l'original (ex. `fort`→🏰 représente en fait mieux le mot que 💪, qui
 convenait davantage à `bras`). `node tools/check.mjs content --emoji` confirme
 `0 missing, 0 duplicate` après correction.
+
+## Décisions (E3 — moteur de quête, leaf d'intégration)
+
+- **Vide de contenu niveaux 1-2 comblé par des ContentItem synthétiques**
+  (`src/world/quest/content.ts`) : le corpus B2 ne commence qu'au niveau 3
+  (`syllables.json`) ; les niveaux 1-2 (sons de lettres isolés, SPEC §5)
+  n'avaient aucun item exploitable. Un `ContentItem` de kind `'grapheme'` par
+  graphème du curriculum est dérivé programmatiquement de
+  `curriculum.graphemes` (jamais un mot inventé). Si une leaf de contenu
+  future veut remplacer cette dérivation par du contenu B2 dédié, il suffit
+  d'ajouter des items `kind:'grapheme'` niveau 1-2 au corpus : `content.ts`
+  les inclura automatiquement sans changement de code (le pool = `[...corpus,
+  ...syntheticGraphemeItems]`).
+- **Taille de quête** : 10 défis réguliers, 12 pour un boss (fourchette 8-12
+  de SPEC §4 respectée).
+- **Répartition ChallengeKind par ContentItemKind** (`challengeKind.ts`) :
+  grapheme→listen-touch ; syllable→alterne listen-touch/forge ; word→alterne
+  listen-touch/forge/read-show ; pseudoword→true-false-word ;
+  sentence→reorder ; text→companion-question.
+- **Grand Livre** : un item entre dans `progress.grandLivreItemIds` si son
+  défi a été réussi ET que sa compétence est maîtrisée (D1.isMastered) après
+  la quête — pas juste réussi une fois.
+- **Boss** : `canStartBossQuest` réutilise `isMastered` (D1) directement par
+  compétence plutôt que `canUnlockNextLevel` (D4), jugé plus honnête
+  sémantiquement pour la question « peut-on démarrer le boss » que pour
+  « peut-on débloquer le niveau suivant ».
+- **Limite connue** : l'anti-devinette peut faire rejouer la consigne mais ne
+  peut pas bloquer dur l'appel `onAnswer` suivant, car `ChallengeComponentProps`
+  (C1, figé) n'offre aucun mécanisme de refus d'entrée. Documenté, pas un bug.
