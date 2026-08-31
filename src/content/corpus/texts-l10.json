@@ -1,0 +1,50 @@
+[
+  {
+    "id": "text-l10-01",
+    "kind": "text",
+    "level": 10,
+    "text": "Le roi arrive dans le parc.\nLe dragon dort.\nLe roi a peur.\nLe chat arrive vite.\nLe chat rit avec le roi.\nBravo le chat !",
+    "graphemeIds": ["r", "oi", "a", "i", "v", "e-muet", "p", "c-dur", "d", "g-dur", "on", "o", "t", "eu", "ch", "b"],
+    "skillIds": ["L10-lecture-autonome"],
+    "questions": [
+      { "id": "text-l10-01-q1", "promptKey": "l10-text-01-q1-qui-a-peur", "answerOptions": ["🤴", "🐉", "🐈"], "correctIndex": 0 },
+      { "id": "text-l10-01-q2", "promptKey": "l10-text-01-q2-qui-arrive-vite", "answerOptions": ["🐈", "🐉", "🤴"], "correctIndex": 0 }
+    ]
+  },
+  {
+    "id": "text-l10-02",
+    "kind": "text",
+    "level": 10,
+    "text": "La reine a une clé.\nLe trésor arrive.\nLa reine trouve le trésor.\nLa reine rit.\nLe roi arrive avec la reine.\nBravo la reine !",
+    "graphemeIds": ["r", "ei", "n", "e-muet", "c-dur", "l", "é", "t", "s", "o", "a", "i", "v", "ou", "oi", "b"],
+    "skillIds": ["L10-lecture-autonome"],
+    "questions": [
+      { "id": "text-l10-02-q1", "promptKey": "l10-text-02-q1-qui-a-la-cle", "answerOptions": ["👸", "🤴", "🐈"], "correctIndex": 0 },
+      { "id": "text-l10-02-q2", "promptKey": "l10-text-02-q2-qui-trouve-tresor", "answerOptions": ["👸", "🐉", "🐈"], "correctIndex": 0 }
+    ]
+  },
+  {
+    "id": "text-l10-03",
+    "kind": "text",
+    "level": 10,
+    "text": "La fée arrive dans le parc.\nLe lion dort.\nLa fée sourit.\nLe lion arrive vite.\nLe lion danse avec la fée.\nBravo la fée !",
+    "graphemeIds": ["f", "é", "e-muet", "a", "r", "i", "v", "p", "c-dur", "l", "on", "d", "o", "t", "s", "ou", "an", "b"],
+    "skillIds": ["L10-lecture-autonome"],
+    "questions": [
+      { "id": "text-l10-03-q1", "promptKey": "l10-text-03-q1-qui-sourit", "answerOptions": ["🧚", "🦁", "🐈"], "correctIndex": 0 },
+      { "id": "text-l10-03-q2", "promptKey": "l10-text-03-q2-qui-danse-avec-fee", "answerOptions": ["🦁", "🐉", "🐈"], "correctIndex": 0 }
+    ]
+  },
+  {
+    "id": "text-l10-04",
+    "kind": "text",
+    "level": 10,
+    "text": "Le chat trouve le trésor.\nLe trésor est beau.\nLe roi arrive.\nLe roi est content.\nLa reine arrive encore.\nBravo le chat !",
+    "graphemeIds": ["ch", "a", "t", "r", "ou", "v", "e-muet", "é", "s", "o", "b", "eau", "oi", "i", "c-dur", "on", "en", "ei", "n"],
+    "skillIds": ["L10-lecture-autonome"],
+    "questions": [
+      { "id": "text-l10-04-q1", "promptKey": "l10-text-04-q1-qui-trouve-tresor", "answerOptions": ["🐈", "🐉", "🦁"], "correctIndex": 0 },
+      { "id": "text-l10-04-q2", "promptKey": "l10-text-04-q2-qui-est-content", "answerOptions": ["🤴", "🐉", "🐈"], "correctIndex": 0 }
+    ]
+  }
+]
