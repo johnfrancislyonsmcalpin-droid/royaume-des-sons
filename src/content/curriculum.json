@@ -1,0 +1,249 @@
+{
+  "levels": [
+    {
+      "level": 1,
+      "regionId": "clairiere-des-voyelles",
+      "labelKey": "region-clairiere-des-voyelles-label",
+      "skillIds": ["L1-nom-son-lettre", "L1-voyelles"],
+      "bossQuestId": "boss-clairiere-des-voyelles"
+    },
+    {
+      "level": 2,
+      "regionId": "foret-des-premieres-consonnes",
+      "labelKey": "region-foret-des-premieres-consonnes-label",
+      "skillIds": ["L2-consonnes"],
+      "bossQuestId": "boss-foret-des-premieres-consonnes"
+    },
+    {
+      "level": 3,
+      "regionId": "pont-des-syllabes",
+      "labelKey": "region-pont-des-syllabes-label",
+      "skillIds": ["L3-fusion-cv"],
+      "bossQuestId": "boss-pont-des-syllabes"
+    },
+    {
+      "level": 4,
+      "regionId": "village-des-mots",
+      "labelKey": "region-village-des-mots-label",
+      "skillIds": ["L4-consonnes", "L4-e-muet"],
+      "bossQuestId": "boss-village-des-mots"
+    },
+    {
+      "level": 5,
+      "regionId": "grotte-des-sons-qui-claquent",
+      "labelKey": "region-grotte-des-sons-qui-claquent-label",
+      "skillIds": ["L5-syllabes-inversees", "L5-bdpq"],
+      "bossQuestId": "boss-grotte-des-sons-qui-claquent"
+    },
+    {
+      "level": 6,
+      "regionId": "lac-des-sons-a-deux-lettres",
+      "labelKey": "region-lac-des-sons-a-deux-lettres-label",
+      "skillIds": ["L6-sons-deux-lettres"],
+      "bossQuestId": "boss-lac-des-sons-a-deux-lettres"
+    },
+    {
+      "level": 7,
+      "regionId": "marais-des-lettres-muettes",
+      "labelKey": "region-marais-des-lettres-muettes-label",
+      "skillIds": [
+        "L7-lettres-muettes",
+        "L7-s-z",
+        "L7-c-g-doux",
+        "L7-qu-ph",
+        "L7-vrai-faux-mot"
+      ],
+      "bossQuestId": "boss-marais-des-lettres-muettes"
+    },
+    {
+      "level": 8,
+      "regionId": "route-des-phrases",
+      "labelKey": "region-route-des-phrases-label",
+      "skillIds": ["L8-mots-outils", "L8-majuscule-point"],
+      "bossQuestId": "boss-route-des-phrases"
+    },
+    {
+      "level": 9,
+      "regionId": "tour-des-histoires",
+      "labelKey": "region-tour-des-histoires-label",
+      "skillIds": ["L9-comprehension", "L9-ponctuation"],
+      "bossQuestId": "boss-tour-des-histoires"
+    },
+    {
+      "level": 10,
+      "regionId": "chateau-du-sortilege",
+      "labelKey": "region-chateau-du-sortilege-label",
+      "skillIds": ["L10-lecture-autonome"],
+      "bossQuestId": "boss-chateau-du-sortilege"
+    }
+  ],
+  "skills": {
+    "L1-nom-son-lettre": {
+      "id": "L1-nom-son-lettre",
+      "level": 1,
+      "label": "Distinguer le nom et le son d'une lettre",
+      "graphemeIds": ["a", "i", "o", "u", "é"]
+    },
+    "L1-voyelles": {
+      "id": "L1-voyelles",
+      "level": 1,
+      "label": "Sons des voyelles a, i, o, u, é (lettre vers son, son vers lettre)",
+      "graphemeIds": ["a", "i", "o", "u", "é"]
+    },
+    "L2-consonnes": {
+      "id": "L2-consonnes",
+      "level": 2,
+      "label": "Sons des consonnes l, m, r, s, p, t (lettre vers son, son vers lettre)",
+      "graphemeIds": ["l", "m", "r", "s", "p", "t"]
+    },
+    "L3-fusion-cv": {
+      "id": "L3-fusion-cv",
+      "level": 3,
+      "label": "Fusionner une consonne et une voyelle en syllabe",
+      "graphemeIds": ["a", "i", "o", "u", "é", "l", "m", "r", "s", "p", "t"]
+    },
+    "L4-consonnes": {
+      "id": "L4-consonnes",
+      "level": 4,
+      "label": "Sons des consonnes f, v, n, d, b, c dur, g dur, k",
+      "graphemeIds": ["f", "v", "n", "d", "b", "c-dur", "g-dur", "k"]
+    },
+    "L4-e-muet": {
+      "id": "L4-e-muet",
+      "level": 4,
+      "label": "Le e muet final qui réveille la lettre d'avant",
+      "graphemeIds": ["e-muet"]
+    },
+    "L5-syllabes-inversees": {
+      "id": "L5-syllabes-inversees",
+      "level": 5,
+      "label": "Lire des syllabes inversées et des mots CVC",
+      "graphemeIds": ["a", "l", "i", "s", "o", "r", "c-dur"]
+    },
+    "L5-bdpq": {
+      "id": "L5-bdpq",
+      "level": 5,
+      "label": "Ne plus confondre b, d, p et q à l'écrit",
+      "graphemeIds": ["b", "d", "p"]
+    },
+    "L6-sons-deux-lettres": {
+      "id": "L6-sons-deux-lettres",
+      "level": 6,
+      "label": "Sons formés de deux lettres : ou, on, an/en, in, oi, eu, ch, gn, au/eau, ai/ei",
+      "graphemeIds": [
+        "ou",
+        "on",
+        "an",
+        "en",
+        "in",
+        "oi",
+        "eu",
+        "ch",
+        "gn",
+        "au",
+        "eau",
+        "ai",
+        "ei"
+      ]
+    },
+    "L7-lettres-muettes": {
+      "id": "L7-lettres-muettes",
+      "level": 7,
+      "label": "Consonne finale muette et pluriel en -s",
+      "graphemeIds": ["t", "d", "s", "p"]
+    },
+    "L7-s-z": {
+      "id": "L7-s-z",
+      "level": 7,
+      "label": "Le s qui se prononce z entre deux voyelles",
+      "graphemeIds": ["s"]
+    },
+    "L7-c-g-doux": {
+      "id": "L7-c-g-doux",
+      "level": 7,
+      "label": "c doux et g doux (ce, ci, ge, gi)",
+      "graphemeIds": ["c-doux", "g-doux"]
+    },
+    "L7-qu-ph": {
+      "id": "L7-qu-ph",
+      "level": 7,
+      "label": "Les sons qu et ph",
+      "graphemeIds": ["qu", "ph"]
+    },
+    "L7-vrai-faux-mot": {
+      "id": "L7-vrai-faux-mot",
+      "level": 7,
+      "label": "Décoder pour distinguer un vrai mot d'un pseudo-mot",
+      "graphemeIds": []
+    },
+    "L8-mots-outils": {
+      "id": "L8-mots-outils",
+      "level": 8,
+      "label": "Reconnaître globalement les mots-outils",
+      "graphemeIds": []
+    },
+    "L8-majuscule-point": {
+      "id": "L8-majuscule-point",
+      "level": 8,
+      "label": "Majuscule de début de phrase et point final",
+      "graphemeIds": []
+    },
+    "L9-comprehension": {
+      "id": "L9-comprehension",
+      "level": 9,
+      "label": "Compréhension orale d'un mini-texte",
+      "graphemeIds": []
+    },
+    "L9-ponctuation": {
+      "id": "L9-ponctuation",
+      "level": 9,
+      "label": "Lire ?, ! et le tiret de dialogue",
+      "graphemeIds": []
+    },
+    "L10-lecture-autonome": {
+      "id": "L10-lecture-autonome",
+      "level": 10,
+      "label": "Lire seul un texte de 5 à 6 phrases et répondre à des questions",
+      "graphemeIds": []
+    }
+  },
+  "graphemes": {
+    "a": { "id": "a", "level": 1, "pronunciationKey": "a" },
+    "i": { "id": "i", "level": 1, "pronunciationKey": "i" },
+    "o": { "id": "o", "level": 1, "pronunciationKey": "o" },
+    "u": { "id": "u", "level": 1, "pronunciationKey": "u" },
+    "é": { "id": "é", "level": 1, "pronunciationKey": "é" },
+    "l": { "id": "l", "level": 2, "pronunciationKey": "l" },
+    "m": { "id": "m", "level": 2, "pronunciationKey": "m" },
+    "r": { "id": "r", "level": 2, "pronunciationKey": "r" },
+    "s": { "id": "s", "level": 2, "pronunciationKey": "s" },
+    "p": { "id": "p", "level": 2, "pronunciationKey": "p" },
+    "t": { "id": "t", "level": 2, "pronunciationKey": "t" },
+    "f": { "id": "f", "level": 4, "pronunciationKey": "f" },
+    "v": { "id": "v", "level": 4, "pronunciationKey": "v" },
+    "n": { "id": "n", "level": 4, "pronunciationKey": "n" },
+    "d": { "id": "d", "level": 4, "pronunciationKey": "d" },
+    "b": { "id": "b", "level": 4, "pronunciationKey": "b" },
+    "c-dur": { "id": "c-dur", "level": 4, "pronunciationKey": "c-dur" },
+    "g-dur": { "id": "g-dur", "level": 4, "pronunciationKey": "g-dur" },
+    "k": { "id": "k", "level": 4, "pronunciationKey": "k" },
+    "e-muet": { "id": "e-muet", "level": 4, "pronunciationKey": "e-muet" },
+    "ou": { "id": "ou", "level": 6, "pronunciationKey": "ou" },
+    "on": { "id": "on", "level": 6, "pronunciationKey": "on" },
+    "an": { "id": "an", "level": 6, "pronunciationKey": "an" },
+    "en": { "id": "en", "level": 6, "pronunciationKey": "en" },
+    "in": { "id": "in", "level": 6, "pronunciationKey": "in" },
+    "oi": { "id": "oi", "level": 6, "pronunciationKey": "oi" },
+    "eu": { "id": "eu", "level": 6, "pronunciationKey": "eu" },
+    "ch": { "id": "ch", "level": 6, "pronunciationKey": "ch" },
+    "gn": { "id": "gn", "level": 6, "pronunciationKey": "gn" },
+    "au": { "id": "au", "level": 6, "pronunciationKey": "au" },
+    "eau": { "id": "eau", "level": 6, "pronunciationKey": "eau" },
+    "ai": { "id": "ai", "level": 6, "pronunciationKey": "ai" },
+    "ei": { "id": "ei", "level": 6, "pronunciationKey": "ei" },
+    "c-doux": { "id": "c-doux", "level": 7, "pronunciationKey": "c-doux" },
+    "g-doux": { "id": "g-doux", "level": 7, "pronunciationKey": "g-doux" },
+    "qu": { "id": "qu", "level": 7, "pronunciationKey": "qu" },
+    "ph": { "id": "ph", "level": 7, "pronunciationKey": "ph" }
+  }
+}
