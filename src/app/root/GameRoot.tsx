@@ -1,7 +1,7 @@
 // Composant racine réel du jeu (leaf A5, intégration) : assemble toutes les
 // pièces livrées par les autres branches en une boucle de jeu jouable de bout
 // en bout. Voir .unlazy/royaume/gates/leaf-A5.md pour le contrat exact.
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { NarrationProvider } from '../../narration/NarrationProvider'
 import { ScreenNavigator, type ScreenDefinition, type ScreenNavigatorApi } from '../ScreenNavigator'
 import { touchSafeStyle } from '../touchSafety'
@@ -10,14 +10,19 @@ import { VoiceCheckScreen, VOICE_CHECK_SCREEN_ID, shouldShowVoiceCheck } from '.
 import { loadSaveFile, writeSaveFile, setCurrentQuestState } from '../../save'
 import type { MasteryState, QuestState, ReviewQueueItem, SaveFile, Skill } from '../../types'
 import { curriculum } from '../../content/curriculum'
+import { uiText } from '../../content/uiText'
 import { buildRegionQuests } from '../../world/map/regionQuests'
 import { assembleQuest } from '../../world/quest/questAssembly'
 import { startQuest, completeQuest } from '../../world/quest/questLifecycle'
 import { canStartBossQuest } from '../../world/quest/bossGate'
+import { crossedPauseThreshold } from '../../world/quest/sessionPause'
 import type { VaChercherUnGrandEvent } from '../../engine/help'
 import { narrationDriver } from './narrationDriver'
+import { speakChallengeText } from './challengeSpeak'
 import { getQuestsPlayed, incrementQuestsPlayed } from './questsPlayedCounter'
+import { computeElapsedMinutes, todayKey } from './sessionTime'
 import { ParentOverlay } from './ParentOverlay'
+import { PausePrompt } from './PausePrompt'
 import { PlayScreenGate } from './screens/PlayScreenGate'
 import { AvatarSelectScreen } from './screens/AvatarSelectScreen'
 import { WorldMapScreen } from './screens/WorldMapScreen'
@@ -51,9 +56,26 @@ function computeInitialScreenId(save: SaveFile): string {
 export function GameRoot() {
   const [save, setSave] = useState<SaveFile>(() => loadSaveFile())
   const [initialScreenId] = useState<string>(() => computeInitialScreenId(save))
+  const [pausePromptVisible, setPausePromptVisible] = useState(false)
 
   const rootRef = useRef<HTMLDivElement | null>(null)
   const triggerFullscreenOnce = useFullscreenOnFirstGesture(rootRef)
+
+  // Suivi du temps de session (SPEC §2.6) : voir sessionTime.ts pour le
+  // défaut d'intégration comblé ici (le champ existait, rien ne l'écrivait
+  // jamais). Figé au montage (le mutateur d'un useRef n'est réellement
+  // appliqué qu'une fois, à la création — voir doc React useRef) ;
+  // `lastWrittenMinutes` sert à détecter un franchissement de seuil de pause
+  // (20, 40...) d'un tick au suivant, sans dépendre d'un état React (évite un
+  // re-render à chaque tick).
+  const initialDayKey = todayKey(new Date())
+  const initialBaselineMinutes = save.progress.sessionMinutesByDay[initialDayKey] ?? 0
+  const trackingStateRef = useRef({
+    mountedAtMs: Date.now(),
+    dayKey: initialDayKey,
+    baselineMinutes: initialBaselineMinutes,
+    lastWrittenMinutes: initialBaselineMinutes,
+  })
 
   // Miroir en mémoire de la mastery/reviewQueue la plus à jour produite par
   // le moteur de session de quête (useQuestSession appelle onMasteryChange
@@ -199,6 +221,61 @@ export function GameRoot() {
     setSave(reloaded)
   }
 
+  // Suivi périodique du temps de session + suggestion de pause SPEC §2.6
+  // (voir sessionTime.ts). Poll plutôt qu'un unique setTimeout à l'échéance
+  // exacte : reste correct si l'onglet est mis en arrière-plan puis réactivé
+  // (setInterval en arrière-plan est retardé par le navigateur, jamais annulé
+  // silencieusement — au réveil, le tick suivant recalcule l'écart réel
+  // depuis mountedAtMs plutôt que de supposer un tick manqué = zéro minute).
+  useEffect(() => {
+    const SESSION_POLL_MS = 15000
+    const interval = window.setInterval(() => {
+      const tracking = trackingStateRef.current
+      const now = Date.now()
+      const currentDayKey = todayKey(new Date(now))
+
+      if (currentDayKey !== tracking.dayKey) {
+        // Session à cheval sur minuit : nouveau jour, on repart de zéro
+        // plutôt que de reporter les minutes d'hier sur la clé d'aujourd'hui.
+        trackingStateRef.current = {
+          mountedAtMs: now,
+          dayKey: currentDayKey,
+          baselineMinutes: 0,
+          lastWrittenMinutes: 0,
+        }
+        return
+      }
+
+      const totalMinutesToday = tracking.baselineMinutes + computeElapsedMinutes(tracking.mountedAtMs, now)
+      if (totalMinutesToday <= tracking.lastWrittenMinutes) return
+
+      const crossedThreshold = crossedPauseThreshold(tracking.lastWrittenMinutes, totalMinutesToday)
+      trackingStateRef.current = { ...tracking, lastWrittenMinutes: totalMinutesToday }
+
+      setSave((prev) => {
+        const updated: SaveFile = {
+          ...prev,
+          progress: {
+            ...prev.progress,
+            sessionMinutesByDay: { ...prev.progress.sessionMinutesByDay, [currentDayKey]: totalMinutesToday },
+          },
+        }
+        writeSaveFile(updated)
+        return updated
+      })
+
+      if (crossedThreshold) {
+        setPausePromptVisible(true)
+        void speakChallengeText(uiText.pause.spokenSuggestion)
+      }
+    }, SESSION_POLL_MS)
+    return () => window.clearInterval(interval)
+  }, [])
+
+  function handlePausePromptDismiss() {
+    setPausePromptVisible(false)
+  }
+
   const screens: ScreenDefinition[] = [
     {
       id: VOICE_CHECK_SCREEN_ID,
@@ -282,6 +359,11 @@ export function GameRoot() {
         </NarrationProvider>
       </div>
       <ParentOverlay onClose={handleParentOverlayClosed} />
+      <PausePrompt
+        visible={pausePromptVisible}
+        onContinue={handlePausePromptDismiss}
+        onTakeBreak={handlePausePromptDismiss}
+      />
     </div>
   )
 }

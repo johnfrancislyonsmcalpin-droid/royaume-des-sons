@@ -43,6 +43,11 @@ interface UiText {
     playIntro: string
     questIntro: string
   }
+  pause: {
+    spokenSuggestion: string
+    continueLabel: string
+    takeBreakLabel: string
+  }
 }
 
 export const uiText: UiText = rawUiText as UiText

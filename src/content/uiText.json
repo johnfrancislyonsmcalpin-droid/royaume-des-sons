@@ -41,5 +41,10 @@
     "avatarSelectIntro": "Choisis ton héros, puis ton compagnon magique, et touche la coche pour confirmer.",
     "playIntro": "Touche le gros bouton pour commencer à jouer.",
     "questIntro": "Un nouveau défi t'attend. Écoute bien la consigne."
+  },
+  "pause": {
+    "spokenSuggestion": "Tu joues depuis un petit moment. Veux-tu faire une pause, ou continuer à jouer ?",
+    "continueLabel": "Continuer à jouer",
+    "takeBreakLabel": "Faire une pause"
   }
 }

@@ -504,3 +504,57 @@ preuve — voir `e2e/level1.spec.ts` (parcours complet niveau 1 → boss, 1.8 mi
    toujours — c'est le CÂBLAGE réel qui devient plus prudent, pas le contrat
    d'A4). Correction plus complète possible côté A2 (annulation ciblée par
    identifiant plutôt que globale) si nécessaire dans une itération future.
+
+## Défaut trouvé et corrigé pendant l'intégration de branche E (revue node-E)
+
+Le ledger d'intégration node-E.md exige une revue manuelle explicite (N6) des
+rappels de pause SPEC §2.6 (« à 20 minutes cumulées, le jeu propose une
+pause »). Cette revue a trouvé un défaut réel, pas seulement documenté un
+état déjà correct :
+
+**La suggestion de pause et le graphique « temps de jeu » de l'écran parent
+étaient tous deux silencieusement inertes.** E3 avait livré la règle pure
+`shouldProposePause`/`crossedPauseThreshold` (`src/world/quest/
+sessionPause.ts`, testée isolément par `pausePrompt.test.ts`), et
+`SaveFile.progress.sessionMinutesByDay` existait déjà comme champ (A3/E2,
+déjà lu par le graphique 14 jours de `ParentDashboard`, F1). Mais AUCUN
+composant réellement monté n'appelait jamais ces fonctions ni n'écrivait
+jamais ce champ : chaque leaf avait livré sa moitié du contrat en la
+supposant câblée par « l'intégrateur », exactement comme les 3 défauts F4
+ci-dessus. Un enfant qui jouait 20 minutes ne voyait jamais de suggestion de
+pause ; un parent qui consultait l'écran parent après une vraie session
+voyait toujours « Aucune session enregistrée pour l'instant ».
+
+Corrigé par le driver (composition root, hors OWNS d'une leaf individuelle) :
+- `src/app/root/sessionTime.ts` — moteur pur et testable (`todayKey`,
+  `computeElapsedMinutes`), même discipline que `src/engine/**` (aucune
+  lecture d'horloge implicite, tout est injecté).
+- `src/app/root/PausePrompt.tsx` — bandeau non modal (jamais plein écran,
+  jamais de backdrop qui intercepterait un tap ailleurs), deux boutons
+  (« Continuer à jouer » / « Faire une pause ») qui se contentent tous deux
+  de refermer le bandeau : c'est le CHOIX offert à l'enfant qui compte
+  (SPEC §2 règle 3, jamais de blocage), pas une navigation forcée — une PWA
+  n'a de toute façon aucune action « quitter » à déclencher.
+- `src/app/root/GameRoot.tsx` — `setInterval` de 15s (poll plutôt qu'un
+  timeout unique, pour rester correct si l'onglet est mis en arrière-plan
+  puis réactivé) qui accumule les minutes réellement écoulées dans
+  `progress.sessionMinutesByDay[aujourd'hui]`, écrit la sauvegarde à chaque
+  minute entière franchie, et affiche `PausePrompt` + énonce
+  `uiText.pause.spokenSuggestion` au franchissement d'un seuil de 20/40/...
+  minutes (`crossedPauseThreshold`). Gère aussi le passage à minuit en cours
+  de session (repart de zéro sur la nouvelle clé de date plutôt que de
+  reporter les minutes d'hier).
+- `src/content/uiText.json`/`uiText.ts` — nouvelle section `pause` (3 clés),
+  aucun texte en dur (CLAUDE.md règle #2, vérifié par
+  `tools/check.mjs code --no-hardcoded-content`, toujours 0 occurrence après
+  cet ajout).
+
+Preuve : `tests/integration/session-pause.test.tsx` (3 tests, `<App/>` réel,
+timers accélérés `vi.useFakeTimers`) — rien avant 20 minutes ; bandeau
+affiché à 20 minutes avec `sessionMinutesByDay` effectivement écrit ; le
+bouton « Continuer à jouer » referme le bandeau sans jamais retirer
+`play-button`/le jeu sous-jacent de l'écran (preuve exécutable du « jamais
+bloquant ») ; une valeur déjà accumulée aujourd'hui (baseline) est bien
+respectée plutôt qu'écrasée. Suite complète rejouée après correction :
+765 tests vitest (70 fichiers) + 4 specs e2e Playwright, tous verts, aucune
+régression.

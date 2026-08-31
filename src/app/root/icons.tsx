@@ -44,3 +44,20 @@ export function BackIcon() {
     </Svg>
   )
 }
+
+/** Sablier — suggestion de pause (SPEC §2.6), jamais un minuteur qui compte
+ * réellement (pas d'aiguille animée, pas de compte à rebours visible). */
+export function HourglassIcon() {
+  return (
+    <Svg>
+      <path
+        d="M7 4h10M7 20h10M7 4c0 5 5 6 5 8s-5 3-5 8M17 4c0 5-5 6-5 8s5 3 5 8"
+        fill="none"
+        stroke={STROKE}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  )
+}
