@@ -134,3 +134,21 @@ n'est jamais réordonné, seulement complété. Revu et finalisé par la leaf F3
   worker avec `export` nécessiterait `{type:'module'}` à l'enregistrement et
   `tsc -b` refuse de typer un module hors `src/` — repassé en script simple,
   testé via import `?raw` exécuté dans un contexte global simulé.
+
+## Décision (B2.1 — syllabes + mots niveaux 3-5) et incident de dispatch
+
+- **Tout `e` plein non final/non accentué mappé sur le graphème `e-muet`**
+  (ex. "totem" → t,o,t,e-muet,m), faute d'un graphème schwa médian dédié dans
+  le curriculum B1 — même convention que celle adoptée indépendamment par
+  B2.2. "totem" déplacé du niveau 3 (exemple SPEC) au niveau 5, car `e-muet`
+  n'est enseigné qu'au niveau 4.
+- **Incident** : la première tentative de cette leaf a échoué (dépassement de
+  la limite de tokens de sortie de l'agent en écrivant tout `words-l3-5.json`
+  en une seule réponse). Le bail a été libéré manuellement par le driver après
+  confirmation du statut "failed" du processus (jamais en aveugle), puis
+  re-réclamé pour une deuxième tentative qui a réutilisé les fichiers déjà
+  corrects (`syllables.json`, les deux fichiers de test) et n'a eu qu'à écrire
+  le JSON manquant, en plusieurs petits appels d'outils plutôt qu'un seul —
+  a réussi du premier coup. Aucune leçon de contenu à en tirer, seulement une
+  leçon opérationnelle : demander explicitement l'écriture incrémentale pour
+  toute leaf produisant un gros fichier de données.
